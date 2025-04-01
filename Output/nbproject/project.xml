@@ -3,17 +3,9 @@
     <type>org.netbeans.modules.apisupport.project</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/nb-module-project/3">
-            <code-name-base>org.ide.code.editor</code-name-base>
+            <code-name-base>org.ide.output</code-name-base>
             <suite-component/>
             <module-dependencies>
-                <dependency>
-                    <code-name-base>org.ide.output</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>1.0</specification-version>
-                    </run-dependency>
-                </dependency>
                 <dependency>
                     <code-name-base>org.netbeans.modules.settings</code-name-base>
                     <build-prerequisite/>
@@ -29,22 +21,6 @@
                     <compile-dependency/>
                     <run-dependency>
                         <specification-version>7.95</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.openide.filesystems</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>9.40</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.openide.io</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>1.76</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
@@ -81,7 +57,7 @@
                 </dependency>
             </module-dependencies>
             <public-packages>
-                <package>org.ide.code.editor</package>
+                <package>org.ide.output</package>
             </public-packages>
         </data>
     </configuration>

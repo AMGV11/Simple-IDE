@@ -46,38 +46,35 @@ import org.openide.windows.TopComponent;
 public class ExploradorTopComponent extends TopComponent implements ExplorerManager.Provider {
 
     private final ExplorerManager mgr = new ExplorerManager();
+    private String directory = "C:\\Users\\anton\\Desktop\\Workspace";
 
-    public ExploradorTopComponent() {
-        initComponents();
-        associateLookup(ExplorerUtils.createLookup(mgr, getActionMap()));
-      
-        // 🔥 Detectar selección en el árbol y abrir el archivo en el editor
-        mgr.addPropertyChangeListener((PropertyChangeEvent evt) -> {
-            if (ExplorerManager.PROP_SELECTED_NODES.equals(evt.getPropertyName())) {
+public ExploradorTopComponent() {
+    initComponents();
+    associateLookup(ExplorerUtils.createLookup(mgr, getActionMap()));
+
+    // Agregar un solo listener al árbol
+    treeView.getViewport().getView().addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            if (e.getClickCount() == 2) { // Detecta doble clic
                 Node[] selectedNodes = mgr.getSelectedNodes();
                 if (selectedNodes.length == 1) {
                     Node selectedNode = selectedNodes[0];
                     FileObject fileObject = selectedNode.getLookup().lookup(FileObject.class);
-                    
+
                     // Verificar si el nodo seleccionado es un archivo
                     if (fileObject != null && !fileObject.isFolder()) {
-                        treeView.getViewport().getView().addMouseListener(new MouseAdapter() {
-                            @Override
-                            public void mouseClicked(MouseEvent e) {
-                                if (e.getClickCount() == 2) { // Detecta doble clic
-                                    openFileInEditor(fileObject);
-                                }
-                            }
-                        });
-                        
+                        openFileInEditor(fileObject);
                     }
                 }
             }
-        });
-        
+        }
+    });
+
+       
         // Carga los archivos después de que el constructor haya terminado
         SwingUtilities.invokeLater(() -> {
-            FileObject rootFolder = FileUtil.toFileObject(new File("C:\\Users\\anton\\Desktop\\Workspace"));
+            FileObject rootFolder = FileUtil.toFileObject(new File(directory));
             Node rootNode = new FileNode(rootFolder);
             mgr.setRootContext(rootNode);
         });
@@ -97,11 +94,19 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
         jPanel1 = new javax.swing.JPanel();
         RouteChange = new javax.swing.JButton();
         treeView = new org.openide.explorer.view.BeanTreeView();
+        Refrescar = new javax.swing.JButton();
 
         org.openide.awt.Mnemonics.setLocalizedText(RouteChange, org.openide.util.NbBundle.getMessage(ExploradorTopComponent.class, "ExploradorTopComponent.RouteChange.text")); // NOI18N
         RouteChange.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 RouteChangeActionPerformed(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(Refrescar, org.openide.util.NbBundle.getMessage(ExploradorTopComponent.class, "ExploradorTopComponent.Refrescar.text")); // NOI18N
+        Refrescar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                RefrescarActionPerformed(evt);
             }
         });
 
@@ -112,7 +117,9 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(RouteChange)
-                .addContainerGap(106, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 22, Short.MAX_VALUE)
+                .addComponent(Refrescar)
+                .addContainerGap())
             .addComponent(treeView, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
         );
         jPanel1Layout.setVerticalGroup(
@@ -120,7 +127,9 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                 .addComponent(treeView, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(RouteChange)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(RouteChange)
+                    .addComponent(Refrescar))
                 .addContainerGap())
         );
 
@@ -140,10 +149,18 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
         final JFrame parent = new JFrame();
         String name = JOptionPane.showInputDialog(parent,
                         "Nombre del nuevo directorio?", null);
-        System.out.println(name);
+        this.directory = name;
+                    FileObject rootFolder = FileUtil.toFileObject(new File(directory));
+            Node rootNode = new FileNode(rootFolder);
+            mgr.setRootContext(rootNode);
     }//GEN-LAST:event_RouteChangeActionPerformed
 
+    private void RefrescarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RefrescarActionPerformed
+        refreshExplorer();
+    }//GEN-LAST:event_RefrescarActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton Refrescar;
     private javax.swing.JButton RouteChange;
     private javax.swing.JPanel jPanel1;
     private org.openide.explorer.view.BeanTreeView treeView;
@@ -163,6 +180,12 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
         return mgr;
     }
     
+    private void refreshExplorer(){
+        FileObject rootFolder = FileUtil.toFileObject(new File(directory));
+        Node rootNode = new FileNode(rootFolder);
+        mgr.setRootContext(rootNode);
+    }
+    
     private void openFileInEditor(FileObject fileObject) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
@@ -171,7 +194,7 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
                 editor.open();
                 editor.requestActive();
                 try {
-                
+
                    editor.loadFile(fileObject);
                 } catch (IOException ex) {
                     Exceptions.printStackTrace(ex);

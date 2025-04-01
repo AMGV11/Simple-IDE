@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import org.netbeans.api.settings.ConvertAsProperties;
@@ -18,9 +19,13 @@ import org.openide.windows.InputOutput;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import javax.swing.JTextArea;
+import org.ide.output.ConsolaTopComponent;
+import org.ide.output.TextAreaOutputStream;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Exceptions;
+import org.openide.windows.WindowManager;
 
 
 /**
@@ -119,54 +124,58 @@ public final class EditorTopComponent extends TopComponent {
 
     private void CompAndExecActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CompAndExecActionPerformed
         String code = CodeEditor.getText();
-    String fileName = "TempClass.java";
+        String fileNameExt = currentFile.getNameExt();
+        String fileName = currentFile.getName();
+        
+    TopComponent consolaTC = WindowManager.getDefault().findTopComponent("ConsolaTopComponent");
+    if (consolaTC instanceof ConsolaTopComponent) {
+    ConsolaTopComponent consola = (ConsolaTopComponent) consolaTC;
+    JTextArea consoleTextArea = consola.getConsole();
     
     try {
         // Guardamos el código como un archivo temporal
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileNameExt))) {
             writer.write(code);
         }
 
         // Obtenemos el compilador de Java
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) {
-            writeMessage("-- No se encontró el compilador. Asegúrate de estar usando un JDK --");
+            System.err.println("-- No se encontró el compilador. Asegúrate de estar usando un JDK --");
             return;
         }
-
+        
+        
+        PrintStream consolePrintStream = new PrintStream(new TextAreaOutputStream(consoleTextArea, "Compilador"));
+        System.setOut(consolePrintStream);
+        System.setErr(consolePrintStream);
+        
         // Compilamos el archivo
-        int result = compiler.run(null, null, null, fileName);
+        int result = compiler.run(null, null, null, fileNameExt);
 
-        if (result == 0) {
-            writeMessage("-- Compilación exitosa --");
+         if (result == 0) {
+            System.out.println("-- Compilacion exitosa --");
 
-            // Configuramos ProcessBuilder con el directorio actual y redirigimos la salida de error
-            ProcessBuilder pb = new ProcessBuilder("java", "TempClass");
-            pb.directory(new File(".")); // Asegúrate de que el directorio es correcto
-            pb.redirectErrorStream(true);
+            // Ejecutar el archivo compilado
+            ProcessBuilder pb = new ProcessBuilder("java", fileName);
+            pb.redirectErrorStream(true); // Combina salida estándar y errores
             Process proceso = pb.start();
 
-            // Esperamos a que el proceso termine (opcional)
             BufferedReader output = new BufferedReader(new InputStreamReader(proceso.getInputStream()));
             String line;
             while ((line = output.readLine()) != null) {
-                writeMessage(line);
+                System.out.println(line);
             }
-            
-            // Esperamos a que finalice el proceso
-            proceso.waitFor();
-            writeMessage("-- Ejecución terminada --\n");
+
+            System.out.println("-- Ejecucion terminada --\n");
         } else {
-            writeMessage("-- Error al compilar --");
+            System.err.println("-- Error al compilar --");
         }
 
-    } catch (IOException | InterruptedException e) {
-        Exceptions.printStackTrace(e);
-    } finally {
-        // Limpiamos el archivo temporal
-        new File(fileName).delete();
-        new File("TempClass.class").delete();
-    }
+    } catch (IOException e) {
+        System.err.println("Error al manejar los archivos: " + e.getMessage());
+
+    }}
     }//GEN-LAST:event_CompAndExecActionPerformed
 
     private void SaveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SaveButtonActionPerformed
@@ -229,7 +238,7 @@ public final class EditorTopComponent extends TopComponent {
             CodeEditor.setText(content);
             setDisplayName(currentFile.getNameExt()); // Cambiar el título del editor
         } catch (IOException e) {
-            writeMessage("Error al abrir el archivo: " + e.getMessage());
+            System.out.println("Error al abrir el archivo: " + e.getMessage());
         }
     }
     
@@ -243,12 +252,12 @@ public final class EditorTopComponent extends TopComponent {
                     try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
                         writer.write(content); // Guardar el contenido en el archivo
                     }
-                    writeMessage("Archivo guardado correctamente: " + file.getName());
+                    System.out.println("Archivo guardado correctamente: " + file.getName());
                 } else {
-                    writeMessage("Error: No se pudo obtener el archivo del FileObject.");
+                    System.out.println("Error: No se pudo obtener el archivo del FileObject.\n");
                 }
             } catch (IOException e) {
-                writeMessage("Error al guardar el archivo: " + e.getMessage());
+                System.out.println("Error al guardar el archivo: " + e.getMessage());
             }   
         }
     }
