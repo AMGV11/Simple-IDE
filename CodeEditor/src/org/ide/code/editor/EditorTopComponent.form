@@ -98,6 +98,9 @@
           <ResourceString bundle="org/ide/code/editor/Bundle.properties" key="EditorTopComponent.SaveButton.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="SaveButtonActionPerformed"/>
+      </Events>
     </Component>
   </SubComponents>
 </Form>

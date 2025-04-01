@@ -6,6 +6,9 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.io.File;
 import java.io.IOException;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import org.ide.code.editor.EditorTopComponent;
 import org.openide.util.NbBundle.Messages;
@@ -47,13 +50,7 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
     public ExploradorTopComponent() {
         initComponents();
         associateLookup(ExplorerUtils.createLookup(mgr, getActionMap()));
-        setLayout(new BorderLayout());
-        BeanTreeView treeView = new BeanTreeView();
-        
-        // Agrega el árbol de archivos a la interfaz
-        add(treeView, BorderLayout.CENTER);
-        setDisplayName("Explorador Windows");
-        
+      
         // 🔥 Detectar selección en el árbol y abrir el archivo en el editor
         mgr.addPropertyChangeListener((PropertyChangeEvent evt) -> {
             if (ExplorerManager.PROP_SELECTED_NODES.equals(evt.getPropertyName())) {
@@ -97,19 +94,59 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel1 = new javax.swing.JPanel();
+        RouteChange = new javax.swing.JButton();
+        treeView = new org.openide.explorer.view.BeanTreeView();
+
+        org.openide.awt.Mnemonics.setLocalizedText(RouteChange, org.openide.util.NbBundle.getMessage(ExploradorTopComponent.class, "ExploradorTopComponent.RouteChange.text")); // NOI18N
+        RouteChange.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                RouteChangeActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(RouteChange)
+                .addContainerGap(106, Short.MAX_VALUE))
+            .addComponent(treeView, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addComponent(treeView, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(RouteChange)
+                .addContainerGap())
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 200, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void RouteChangeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RouteChangeActionPerformed
+        final JFrame parent = new JFrame();
+        String name = JOptionPane.showInputDialog(parent,
+                        "Nombre del nuevo directorio?", null);
+        System.out.println(name);
+    }//GEN-LAST:event_RouteChangeActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton RouteChange;
+    private javax.swing.JPanel jPanel1;
+    private org.openide.explorer.view.BeanTreeView treeView;
     // End of variables declaration//GEN-END:variables
     @Override
     public void componentOpened() {
@@ -133,12 +170,12 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
                 EditorTopComponent editor = new EditorTopComponent();
                 editor.open();
                 editor.requestActive();
-               // try {
+                try {
                 
- //                   editor.loadFile(fileObject);
-//                } catch (IOException ex) {
-                 //   Exceptions.printStackTrace(ex);
-               // }
+                   editor.loadFile(fileObject);
+                } catch (IOException ex) {
+                    Exceptions.printStackTrace(ex);
+                }
             }
         });
     }

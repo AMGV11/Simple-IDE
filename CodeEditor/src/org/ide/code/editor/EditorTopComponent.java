@@ -13,10 +13,15 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.windows.TopComponent;
 import org.openide.util.NbBundle.Messages;
-import org.openide.windows.*;
 import org.openide.windows.IOProvider;
 import org.openide.windows.InputOutput;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
+import org.openide.util.Exceptions;
+
 
 /**
  * Top component which displays something.
@@ -44,12 +49,15 @@ import java.io.PrintWriter;
 })
 public final class EditorTopComponent extends TopComponent {
 
+    private FileObject currentFile;
+
     public EditorTopComponent() {
+        this.currentFile = null;
         initComponents();
         setName(Bundle.CTL_EditorTopComponent());
         setToolTipText(Bundle.HINT_EditorTopComponent());
-
     }
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -76,6 +84,11 @@ public final class EditorTopComponent extends TopComponent {
         });
 
         org.openide.awt.Mnemonics.setLocalizedText(SaveButton, org.openide.util.NbBundle.getMessage(EditorTopComponent.class, "EditorTopComponent.SaveButton.text")); // NOI18N
+        SaveButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                SaveButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -105,48 +118,65 @@ public final class EditorTopComponent extends TopComponent {
     }// </editor-fold>//GEN-END:initComponents
 
     private void CompAndExecActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CompAndExecActionPerformed
-                // TODO add your handling code here:
         String code = CodeEditor.getText();
-        System.out.printf(code);
-        String fileName = "TempClass.java";
-        
-        try {
-            // Guardamos el código como un archivo temporal
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
-                writer.write(code);
+    String fileName = "TempClass.java";
+    
+    try {
+        // Guardamos el código como un archivo temporal
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+            writer.write(code);
+        }
+
+        // Obtenemos el compilador de Java
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        if (compiler == null) {
+            writeMessage("-- No se encontró el compilador. Asegúrate de estar usando un JDK --");
+            return;
+        }
+
+        // Compilamos el archivo
+        int result = compiler.run(null, null, null, fileName);
+
+        if (result == 0) {
+            writeMessage("-- Compilación exitosa --");
+
+            // Configuramos ProcessBuilder con el directorio actual y redirigimos la salida de error
+            ProcessBuilder pb = new ProcessBuilder("java", "TempClass");
+            pb.directory(new File(".")); // Asegúrate de que el directorio es correcto
+            pb.redirectErrorStream(true);
+            Process proceso = pb.start();
+
+            // Esperamos a que el proceso termine (opcional)
+            BufferedReader output = new BufferedReader(new InputStreamReader(proceso.getInputStream()));
+            String line;
+            while ((line = output.readLine()) != null) {
+                writeMessage(line);
             }
+            
+            // Esperamos a que finalice el proceso
+            proceso.waitFor();
+            writeMessage("-- Ejecución terminada --\n");
+        } else {
+            writeMessage("-- Error al compilar --");
+        }
 
-            // Obtenemos el compilador de Java
-            JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-
-            // Compilamos el archivo
-            int result = compiler.run(null, null, null, fileName);
-
-            if (result == 0) {
-                writeMessage("-- Compilación exitosa --");
-
-                // Cargamos y ejecutamos la clase compilada
-                //Process proceso = Runtime.getRuntime().exec("java TempClass");
-                ProcessBuilder pb = new ProcessBuilder("java", "TempClass");
-                Process proceso = pb.start();
-                BufferedReader output = new BufferedReader(new InputStreamReader(proceso.getInputStream()));
-                String line;
-                while ((line = output.readLine()) != null) {
-                    writeMessage(line);
-                }
-                writeMessage("-- Ejecucion terminada --\n");
-            } else {
-                writeMessage("-- Error al compilar --");
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            // Limpiamos el archivo temporal
-            new File(fileName).delete();
-            new File("TempClass.class").delete();
-        } 
+    } catch (IOException | InterruptedException e) {
+        Exceptions.printStackTrace(e);
+    } finally {
+        // Limpiamos el archivo temporal
+        new File(fileName).delete();
+        new File("TempClass.class").delete();
+    }
     }//GEN-LAST:event_CompAndExecActionPerformed
+
+    private void SaveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SaveButtonActionPerformed
+         try {
+            saveFile(currentFile);
+        } catch (IOException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+
+    }//GEN-LAST:event_SaveButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextArea CodeEditor;
@@ -154,10 +184,12 @@ public final class EditorTopComponent extends TopComponent {
     private javax.swing.JButton SaveButton;
     private javax.swing.JScrollPane jScrollPane2;
     // End of variables declaration//GEN-END:variables
-   // Obtén o crea una pestaña en la ventana Output con el nombre que desees.
+    
+    // Obtén o crea una pestaña en la ventana Output con el nombre que desees.
     private static final InputOutput io = IOProvider.getDefault().getIO("Consola", false);
                                             
 
+    @Override
     public void componentOpened() {
         // TODO add custom code on component opening
     }
@@ -188,6 +220,37 @@ public final class EditorTopComponent extends TopComponent {
         PrintWriter out = io.getOut();
         out.println(message);
         out.flush();
+    }
+    
+    public void loadFile(FileObject fileObject) throws IOException {
+        try {
+            currentFile = fileObject;
+            String content = new String(Files.readAllBytes(Paths.get(currentFile.getPath())));
+            CodeEditor.setText(content);
+            setDisplayName(currentFile.getNameExt()); // Cambiar el título del editor
+        } catch (IOException e) {
+            writeMessage("Error al abrir el archivo: " + e.getMessage());
+        }
+    }
+    
+    private void saveFile(FileObject fileObject) throws IOException {
+        if (fileObject != null) {
+            try {
+                String content = CodeEditor.getText(); // Obtener el texto del editor
+                File file = FileUtil.toFile(fileObject); // Convertir FileObject a File
+
+                if (file != null) {
+                    try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+                        writer.write(content); // Guardar el contenido en el archivo
+                    }
+                    writeMessage("Archivo guardado correctamente: " + file.getName());
+                } else {
+                    writeMessage("Error: No se pudo obtener el archivo del FileObject.");
+                }
+            } catch (IOException e) {
+                writeMessage("Error al guardar el archivo: " + e.getMessage());
+            }   
+        }
     }
     
 }
