@@ -36,17 +36,17 @@ import java.io.PrintStream;
     "HINT_ConsolaTopComponent=This is a Consola window"
 })
 public final class ConsolaTopComponent extends TopComponent {
-    
+
     public ConsolaTopComponent() {
         initComponents();
-        
+
         TextAreaOutputStream taOutputStream = new TextAreaOutputStream(Consola, "IDE");
         PrintStream printStream = new PrintStream(taOutputStream, true);
         System.setOut(printStream);
         System.setErr(printStream);
-        
+
         setDisplayName("Consola IDE");
-        
+
     }
 
     /**
@@ -109,8 +109,8 @@ public final class ConsolaTopComponent extends TopComponent {
         String version = p.getProperty("version");
         // TODO read your settings according to their version
     }
-    
-    public javax.swing.JTextArea getConsole(){
+
+    public javax.swing.JTextArea getConsole() {
         return Consola;
     }
 }

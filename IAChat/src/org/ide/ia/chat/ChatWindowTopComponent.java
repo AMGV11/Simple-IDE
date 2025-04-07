@@ -31,7 +31,7 @@ import org.openide.util.NbBundle.Messages;
 )
 @Messages({
     "CTL_ChatWindowAction=ChatWindow",
-    "CTL_ChatWindowTopComponent=Chat Window",
+    "CTL_ChatWindowTopComponent=Chat IA",
     "HINT_ChatWindowTopComponent=This is a ChatWindow window"
 })
 public final class ChatWindowTopComponent extends TopComponent {

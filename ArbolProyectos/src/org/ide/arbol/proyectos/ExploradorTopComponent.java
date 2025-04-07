@@ -1,12 +1,9 @@
 package org.ide.arbol.proyectos;
 
-import java.awt.BorderLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.beans.PropertyChangeEvent;
 import java.io.File;
 import java.io.IOException;
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -16,7 +13,6 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.explorer.ExplorerManager;
 import org.openide.explorer.ExplorerUtils;
-import org.openide.explorer.view.BeanTreeView;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.nodes.Node;
@@ -40,7 +36,7 @@ import org.openide.windows.TopComponent;
 )
 @Messages({
     "CTL_ExploradorAction=Explorador",
-    "CTL_ExploradorTopComponent=Explorador Window",
+    "CTL_ExploradorTopComponent=Explorador de Archivos",
     "HINT_ExploradorTopComponent=This is a Explorador window"
 })
 public class ExploradorTopComponent extends TopComponent implements ExplorerManager.Provider {
@@ -48,30 +44,32 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
     private final ExplorerManager mgr = new ExplorerManager();
     private String directory = "C:\\Users\\anton\\Desktop\\Workspace";
 
-public ExploradorTopComponent() {
-    initComponents();
-    associateLookup(ExplorerUtils.createLookup(mgr, getActionMap()));
+    public ExploradorTopComponent() {
+        initComponents();
+        setName(Bundle.CTL_ExploradorTopComponent()); // Nombre interno
+        setDisplayName(Bundle.CTL_ExploradorTopComponent()); // Nombre visible en la pestaña
+        setToolTipText(Bundle.HINT_ExploradorTopComponent()); // Tooltip
+        associateLookup(ExplorerUtils.createLookup(mgr, getActionMap()));
 
-    // Agregar un solo listener al árbol
-    treeView.getViewport().getView().addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseClicked(MouseEvent e) {
-            if (e.getClickCount() == 2) { // Detecta doble clic
-                Node[] selectedNodes = mgr.getSelectedNodes();
-                if (selectedNodes.length == 1) {
-                    Node selectedNode = selectedNodes[0];
-                    FileObject fileObject = selectedNode.getLookup().lookup(FileObject.class);
+        // Agregar un solo listener al árbol
+        treeView.getViewport().getView().addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) { // Detecta doble clic
+                    Node[] selectedNodes = mgr.getSelectedNodes();
+                    if (selectedNodes.length == 1) {
+                        Node selectedNode = selectedNodes[0];
+                        FileObject fileObject = selectedNode.getLookup().lookup(FileObject.class);
 
-                    // Verificar si el nodo seleccionado es un archivo
-                    if (fileObject != null && !fileObject.isFolder()) {
-                        openFileInEditor(fileObject);
+                        // Verificar si el nodo seleccionado es un archivo
+                        if (fileObject != null && !fileObject.isFolder()) {
+                            openFileInEditor(fileObject);
+                        }
                     }
                 }
             }
-        }
-    });
+        });
 
-       
         // Carga los archivos después de que el constructor haya terminado
         SwingUtilities.invokeLater(() -> {
             FileObject rootFolder = FileUtil.toFileObject(new File(directory));
@@ -79,9 +77,7 @@ public ExploradorTopComponent() {
             mgr.setRootContext(rootNode);
         });
 
-    
     }
-
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -148,11 +144,11 @@ public ExploradorTopComponent() {
     private void RouteChangeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RouteChangeActionPerformed
         final JFrame parent = new JFrame();
         String name = JOptionPane.showInputDialog(parent,
-                        "Nombre del nuevo directorio?", null);
+                "Nombre del nuevo directorio?", null);
         this.directory = name;
-                    FileObject rootFolder = FileUtil.toFileObject(new File(directory));
-            Node rootNode = new FileNode(rootFolder);
-            mgr.setRootContext(rootNode);
+        FileObject rootFolder = FileUtil.toFileObject(new File(directory));
+        Node rootNode = new FileNode(rootFolder);
+        mgr.setRootContext(rootNode);
     }//GEN-LAST:event_RouteChangeActionPerformed
 
     private void RefrescarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RefrescarActionPerformed
@@ -179,13 +175,13 @@ public ExploradorTopComponent() {
     public ExplorerManager getExplorerManager() {
         return mgr;
     }
-    
-    private void refreshExplorer(){
+
+    private void refreshExplorer() {
         FileObject rootFolder = FileUtil.toFileObject(new File(directory));
         Node rootNode = new FileNode(rootFolder);
         mgr.setRootContext(rootNode);
     }
-    
+
     private void openFileInEditor(FileObject fileObject) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
@@ -195,12 +191,12 @@ public ExploradorTopComponent() {
                 editor.requestActive();
                 try {
 
-                   editor.loadFile(fileObject);
+                    editor.loadFile(fileObject);
                 } catch (IOException ex) {
                     Exceptions.printStackTrace(ex);
                 }
             }
         });
     }
-    
+
 }

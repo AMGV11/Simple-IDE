@@ -27,7 +27,6 @@ import org.openide.filesystems.FileUtil;
 import org.openide.util.Exceptions;
 import org.openide.windows.WindowManager;
 
-
 /**
  * Top component which displays something.
  */
@@ -40,7 +39,7 @@ import org.openide.windows.WindowManager;
         //iconBase="SET/PATH/TO/ICON/HERE",
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
-@TopComponent.Registration(mode = "editor", openAtStartup = true)
+@TopComponent.Registration(mode = "editor", openAtStartup = false)
 @ActionID(category = "Window", id = "org.ide.code.editor.EditorTopComponent")
 @ActionReference(path = "Menu/Window" /*, position = 333 */)
 @TopComponent.OpenActionRegistration(
@@ -49,7 +48,7 @@ import org.openide.windows.WindowManager;
 )
 @Messages({
     "CTL_EditorAction=Editor",
-    "CTL_EditorTopComponent=Editor Window",
+    "CTL_EditorTopComponent=Editor de Codigo",
     "HINT_EditorTopComponent=This is a Editor window"
 })
 public final class EditorTopComponent extends TopComponent {
@@ -62,7 +61,6 @@ public final class EditorTopComponent extends TopComponent {
         setName(Bundle.CTL_EditorTopComponent());
         setToolTipText(Bundle.HINT_EditorTopComponent());
     }
-
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -124,62 +122,70 @@ public final class EditorTopComponent extends TopComponent {
 
     private void CompAndExecActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CompAndExecActionPerformed
         String code = CodeEditor.getText();
-        String fileNameExt = currentFile.getNameExt();
-        String fileName = currentFile.getName();
-        
-    TopComponent consolaTC = WindowManager.getDefault().findTopComponent("ConsolaTopComponent");
-    if (consolaTC instanceof ConsolaTopComponent) {
-    ConsolaTopComponent consola = (ConsolaTopComponent) consolaTC;
-    JTextArea consoleTextArea = consola.getConsole();
-    
-    try {
-        // Guardamos el código como un archivo temporal
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileNameExt))) {
-            writer.write(code);
+        String fileNameExt = "TempClass.java";
+        String fileName = "TempClass";
+
+        if (currentFile != null) {
+            fileNameExt = currentFile.getNameExt();
+            fileName = currentFile.getName();
         }
 
-        // Obtenemos el compilador de Java
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        if (compiler == null) {
-            System.err.println("-- No se encontró el compilador. Asegúrate de estar usando un JDK --");
-            return;
-        }
-        
-        
-        PrintStream consolePrintStream = new PrintStream(new TextAreaOutputStream(consoleTextArea, "Compilador"));
-        System.setOut(consolePrintStream);
-        System.setErr(consolePrintStream);
-        
-        // Compilamos el archivo
-        int result = compiler.run(null, null, null, fileNameExt);
+        TopComponent consolaTC = WindowManager.getDefault().findTopComponent("ConsolaTopComponent");
+        if (consolaTC instanceof ConsolaTopComponent) {
+            ConsolaTopComponent consola = (ConsolaTopComponent) consolaTC;
+            JTextArea consoleTextArea = consola.getConsole();
 
-         if (result == 0) {
-            System.out.println("-- Compilacion exitosa --");
+            try {
+                // Guardamos el código como un archivo temporal
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileNameExt))) {
+                    writer.write(code);
+                }
 
-            // Ejecutar el archivo compilado
-            ProcessBuilder pb = new ProcessBuilder("java", fileName);
-            pb.redirectErrorStream(true); // Combina salida estándar y errores
-            Process proceso = pb.start();
+                // Obtenemos el compilador de Java
+                JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+                if (compiler == null) {
+                    System.err.println("-- No se encontró el compilador. Asegúrate de estar usando un JDK --");
+                    return;
+                }
 
-            BufferedReader output = new BufferedReader(new InputStreamReader(proceso.getInputStream()));
-            String line;
-            while ((line = output.readLine()) != null) {
-                System.out.println(line);
+                PrintStream consolePrintStream = new PrintStream(new TextAreaOutputStream(consoleTextArea, "Compilador"));
+                System.setOut(consolePrintStream);
+                System.setErr(consolePrintStream);
+
+                // Compilamos el archivo
+                int result = compiler.run(null, null, null, fileNameExt);
+
+                if (result == 0) {
+                    System.out.println("-- Compilacion exitosa --");
+
+                    // Ejecutar el archivo compilado
+                    ProcessBuilder pb = new ProcessBuilder("java", fileName);
+                    pb.redirectErrorStream(true); // Combina salida estándar y errores
+                    Process proceso = pb.start();
+
+                    BufferedReader output = new BufferedReader(new InputStreamReader(proceso.getInputStream()));
+                    String line;
+                    while ((line = output.readLine()) != null) {
+                        System.out.println(line);
+                    }
+
+                    System.out.println("-- Ejecucion terminada --\n");
+                } else {
+                    System.err.println("-- Error al compilar --");
+                    if (currentFile == null) {
+                        System.out.println("-- Para probar la compilacion, abra un archivo desde el explorador de archivos --");
+                    }
+                }
+
+            } catch (IOException e) {
+                System.err.println("Error al manejar los archivos: " + e.getMessage());
+
             }
-
-            System.out.println("-- Ejecucion terminada --\n");
-        } else {
-            System.err.println("-- Error al compilar --");
         }
-
-    } catch (IOException e) {
-        System.err.println("Error al manejar los archivos: " + e.getMessage());
-
-    }}
     }//GEN-LAST:event_CompAndExecActionPerformed
 
     private void SaveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SaveButtonActionPerformed
-         try {
+        try {
             saveFile(currentFile);
         } catch (IOException ex) {
             Exceptions.printStackTrace(ex);
@@ -193,10 +199,9 @@ public final class EditorTopComponent extends TopComponent {
     private javax.swing.JButton SaveButton;
     private javax.swing.JScrollPane jScrollPane2;
     // End of variables declaration//GEN-END:variables
-    
+
     // Obtén o crea una pestaña en la ventana Output con el nombre que desees.
     private static final InputOutput io = IOProvider.getDefault().getIO("Consola", false);
-                                            
 
     @Override
     public void componentOpened() {
@@ -219,7 +224,7 @@ public final class EditorTopComponent extends TopComponent {
         String version = p.getProperty("version");
         // TODO read your settings according to their version
     }
-    
+
     public static void writeMessage(String message) throws IOException {
         // Selecciona la pestaña para que se muestre en la ventana Output
         //io.getOut().reset(); //Para hacer un clear en la pantalla output
@@ -230,7 +235,7 @@ public final class EditorTopComponent extends TopComponent {
         out.println(message);
         out.flush();
     }
-    
+
     public void loadFile(FileObject fileObject) throws IOException {
         try {
             currentFile = fileObject;
@@ -241,7 +246,7 @@ public final class EditorTopComponent extends TopComponent {
             System.out.println("Error al abrir el archivo: " + e.getMessage());
         }
     }
-    
+
     private void saveFile(FileObject fileObject) throws IOException {
         if (fileObject != null) {
             try {
@@ -258,8 +263,10 @@ public final class EditorTopComponent extends TopComponent {
                 }
             } catch (IOException e) {
                 System.out.println("Error al guardar el archivo: " + e.getMessage());
-            }   
+            }
+        } else {
+            System.out.println("Error al guardar, se necesita abrir un archivo para guardar");
         }
     }
-    
+
 }
