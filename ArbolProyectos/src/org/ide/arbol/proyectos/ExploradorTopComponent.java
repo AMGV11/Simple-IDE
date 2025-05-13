@@ -4,10 +4,25 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Stream;
+import javax.swing.Action;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
-import org.ide.code.editor.EditorTopComponent;
+import org.ide.code.editor.*;
+import org.netbeans.api.project.Project;
+import org.netbeans.api.project.ProjectManager;
+import org.netbeans.api.project.ProjectUtils;
+import org.netbeans.api.project.ui.OpenProjects;
+import org.netbeans.spi.project.ProjectFactory;
+import org.netbeans.spi.project.ui.*;
+import org.netbeans.spi.project.ui.support.CommonProjectActions;
+import org.netbeans.spi.project.ui.support.ProjectChooser;
+import org.openide.DialogDisplayer;
+import org.openide.WizardDescriptor;
 import org.openide.util.NbBundle.Messages;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -15,8 +30,14 @@ import org.openide.explorer.ExplorerManager;
 import org.openide.explorer.ExplorerUtils;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
+import org.openide.loaders.TemplateWizard;
+import org.openide.nodes.AbstractNode;
+import org.openide.nodes.Children;
 import org.openide.nodes.Node;
 import org.openide.util.Exceptions;
+import org.openide.util.Lookup;
+import org.openide.util.Utilities;
+import org.openide.util.lookup.Lookups;
 import org.openide.windows.TopComponent;
 
 /**
@@ -29,7 +50,7 @@ import org.openide.windows.TopComponent;
 )
 @TopComponent.Registration(mode = "explorer", openAtStartup = true)
 @ActionID(category = "Window", id = "org.ide.arbol.proyectos.ExploradorTopComponent")
-@ActionReference(path = "Menu/Window" /*, position = 333 */)
+@ActionReference(path = "Menu/Window", position = 10)
 @TopComponent.OpenActionRegistration(
         displayName = "#CTL_ExploradorAction",
         preferredID = "ExploradorTopComponent"
@@ -42,7 +63,7 @@ import org.openide.windows.TopComponent;
 public class ExploradorTopComponent extends TopComponent implements ExplorerManager.Provider {
 
     private final ExplorerManager mgr = new ExplorerManager();
-    private String directory = "C:\\Users\\anton\\Desktop\\Workspace";
+    private String directory = "C:\\Users\\anton\\Desktop\\Prueba IDE\\WordEditorCore";
 
     public ExploradorTopComponent() {
         initComponents();
@@ -50,6 +71,19 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
         setDisplayName(Bundle.CTL_ExploradorTopComponent()); // Nombre visible en la pestaña
         setToolTipText(Bundle.HINT_ExploradorTopComponent()); // Tooltip
         associateLookup(ExplorerUtils.createLookup(mgr, getActionMap()));
+
+        File projectsDir = new File("C:/Users/anton/Documents/NetBeansProjects"); // o un path válido
+
+        OpenProjects.getDefault().addPropertyChangeListener(evt -> {
+            if (OpenProjects.PROPERTY_OPEN_PROJECTS.equals(evt.getPropertyName())) {
+                mgr.setRootContext(Node.EMPTY);
+                try {
+                    refreshExplorer(); // Actualiza tu árbol cuando se abre un proyecto
+                } catch (IOException ex) {
+                    Exceptions.printStackTrace(ex);
+                }
+            }
+        });
 
         // Agregar un solo listener al árbol
         treeView.getViewport().getView().addMouseListener(new MouseAdapter() {
@@ -59,11 +93,10 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
                     Node[] selectedNodes = mgr.getSelectedNodes();
                     if (selectedNodes.length == 1) {
                         Node selectedNode = selectedNodes[0];
-                        FileObject fileObject = selectedNode.getLookup().lookup(FileObject.class);
-
-                        // Verificar si el nodo seleccionado es un archivo
-                        if (fileObject != null && !fileObject.isFolder()) {
-                            openFileInEditor(fileObject);
+                        Project project = selectedNode.getLookup().lookup(Project.class);
+                        if (project != null) {
+                            JOptionPane.showMessageDialog(null, "Proyecto: "
+                                    + project.getProjectDirectory().getPath());
                         }
                     }
                 }
@@ -72,9 +105,9 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
 
         // Carga los archivos después de que el constructor haya terminado
         SwingUtilities.invokeLater(() -> {
-            FileObject rootFolder = FileUtil.toFileObject(new File(directory));
-            Node rootNode = new FileNode(rootFolder);
-            mgr.setRootContext(rootNode);
+
+            //Node rootNode = new JavaProject(projectsDir);
+            //mgr.setRootContext(rootNode);
         });
 
     }
@@ -142,17 +175,33 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
     }// </editor-fold>//GEN-END:initComponents
 
     private void RouteChangeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RouteChangeActionPerformed
-        final JFrame parent = new JFrame();
+        /*final JFrame parent = new JFrame();
         String name = JOptionPane.showInputDialog(parent,
                 "Nombre del nuevo directorio?", null);
-        this.directory = name;
-        FileObject rootFolder = FileUtil.toFileObject(new File(directory));
-        Node rootNode = new FileNode(rootFolder);
-        mgr.setRootContext(rootNode);
+        
+        if (name == null){
+            //No cambiar el directorio
+        } else {
+            this.directory = name;
+            FileObject rootFolder = FileUtil.toFileObject(new File(directory));
+            //Node rootNode = new FileNode(rootFolder);
+            //mgr.setRootContext(rootNode);
+        }*/
+                
+        Action newProjectAction = CommonProjectActions.newProjectAction();
+        newProjectAction.actionPerformed(null);
+        System.out.println("------Intentando poner Wizard");
     }//GEN-LAST:event_RouteChangeActionPerformed
 
     private void RefrescarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RefrescarActionPerformed
-        refreshExplorer();
+        try {
+            refreshExplorer();
+        } catch (IOException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+        for (ProjectFactory factory : Lookup.getDefault().lookupAll(ProjectFactory.class)) {
+            System.out.println("Factory: " + factory.getClass().getName());
+        }
     }//GEN-LAST:event_RefrescarActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -163,7 +212,24 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
     // End of variables declaration//GEN-END:variables
     @Override
     public void componentOpened() {
-        // TODO add custom code on component opening
+        File dir = new File("C:\\Users\\anton\\Desktop\\Prueba IDE\\WordEditorCore");
+        FileObject fo = FileUtil.toFileObject(FileUtil.normalizeFile(dir));
+        Project project = null;
+        try {
+            project = ProjectManager.getDefault().findProject(fo);
+        } catch (IOException ex) {
+            Exceptions.printStackTrace(ex);
+        } catch (IllegalArgumentException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+        if (project != null) {
+            OpenProjects.getDefault().open(new Project[]{project}, false);
+            System.out.println("Proyecto Abierto");
+
+        }
+        
+
+
     }
 
     @Override
@@ -176,27 +242,98 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
         return mgr;
     }
 
-    private void refreshExplorer() {
-        FileObject rootFolder = FileUtil.toFileObject(new File(directory));
-        Node rootNode = new FileNode(rootFolder);
-        mgr.setRootContext(rootNode);
+    private void refreshExplorer() throws IOException {
+        /*File rootDir = new File("ruta/a/tu/directorio/proyecto"); // Cambia esta ruta
+        //List<Project> projects = detector.detectProjects(rootDir);
+
+        // Mostrar los proyectos detectados en el explorador
+        for (Project project : projects) {
+           addProjectNodeToExplorer(project);
+        }*/
+
+        mgr.setRootContext(Node.EMPTY);
+        
+        // Obtener todos los proyectos abiertos SIN duplicados
+        Project[] openProjects = OpenProjects.getDefault().getOpenProjects();
+
+        // Creamos un Set para evitar duplicados (opcional, OpenProjects ya los filtra normalmente)
+        Set<Project> uniqueProjects = new HashSet<>(Arrays.asList(openProjects));
+
+        // Mapeamos los nodos de los proyectos abiertos
+        Node[] projectNodes = uniqueProjects.stream()
+                    .map(this::createProjectNode)
+                    .filter(n -> n != null)
+                    .toArray(Node[]::new);
+
+        Node root = new AbstractNode(new NodeChildren(projectNodes));
+        mgr.setRootContext(root);
+        
+       /* Lookup globalLookup = Utilities.actionsGlobalContext();
+        globalLookup.lookupAll(Object.class).forEach(obj
+        -> System.out.println("Global Lookup: " + obj.getClass().getName()));*/
     }
 
-    private void openFileInEditor(FileObject fileObject) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                EditorTopComponent editor = new EditorTopComponent();
-                editor.open();
-                editor.requestActive();
-                try {
+    private Node createProjectNode(Project project) {
+        Lookup lookup = project.getLookup();
+        LogicalViewProvider viewProvider = lookup.lookup(LogicalViewProvider.class);
 
-                    editor.loadFile(fileObject);
-                } catch (IOException ex) {
-                    Exceptions.printStackTrace(ex);
-                }
+        if (viewProvider != null) {
+            System.out.println("Se ha creado la vista bien");
+            return viewProvider.createLogicalView();
+        }
+
+        System.out.println("Error al crear");
+        return null;
+    }
+
+    /*private void openFileInEditor(FileObject fileObject) {
+        SwingUtilities.invokeLater(() -> {
+            EditorTopComponent editor = new EditorTopComponent();
+            editor.open();
+            editor.requestActive();
+            try {
+
+                editor.loadFile(fileObject);
+            } catch (IOException ex) {
+                Exceptions.printStackTrace(ex);
             }
         });
+    }*/
+
+    private static class NodeChildren extends Children.Keys<Node> {
+
+        private final Node[] nodes;
+
+        NodeChildren(Node[] nodes) {
+            this.nodes = nodes;
+        }
+
+        @Override
+        protected void addNotify() {
+            setKeys(nodes);
+        }
+
+        @Override
+        protected Node[] createNodes(Node key) {
+            return new Node[]{key};
+        }
     }
 
+    /*private  Node buildProjectsRootNode(File folder) {
+    Children children = new Children.Array();
+    Node root = new AbstractNode(children);
+    root.setDisplayName("Proyectos en " + folder.getAbsolutePath());
+
+    File[] dirs = folder.listFiles(File::isDirectory);
+    if (dirs == null) return root;
+
+    for (File dir : dirs) {
+        if (JavaProjectDetector.hasJavaFiles(dir)) {
+            Node projectNode = new JavaProjectNode(dir);
+            children.add(new Node[]{new JavaProjectNode(dir)});
+        }
+    }
+
+    return root;
+}*/
 }
