@@ -61,7 +61,7 @@ public class NewProjectWizardPanel1 implements WizardDescriptor.Panel<WizardDesc
 
     @Override
     public void storeSettings(WizardDescriptor wiz) {
-        // use wiz.putProperty to remember current panel state
+        wiz.putProperty("projectName", getComponent().getProjectName());  
+        wiz.putProperty("directory", getComponent().getDirectory());  
     }
-
 }

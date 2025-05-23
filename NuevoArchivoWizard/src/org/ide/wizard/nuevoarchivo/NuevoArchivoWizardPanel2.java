@@ -69,6 +69,8 @@ public class NuevoArchivoWizardPanel2 implements WizardDescriptor.Panel<WizardDe
     @Override
     public void storeSettings(WizardDescriptor wiz) {
         wiz.putProperty("nombre", getComponent().getNombre());
-        wiz.putProperty("carpeta", getComponent().getCarpeta());    }
+        wiz.putProperty("carpeta", getComponent().getCarpeta());    
+        wiz.putProperty("path", getComponent().getPath());    
+    }
 
 }

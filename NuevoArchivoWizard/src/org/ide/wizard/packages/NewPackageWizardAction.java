@@ -7,10 +7,12 @@ package org.ide.wizard.packages;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JComponent;
+import org.ide.arbol.proyectos.ExploradorTopComponent;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ui.OpenProjects;
 import org.openide.DialogDisplayer;
@@ -18,13 +20,20 @@ import org.openide.NotifyDescriptor;
 import org.openide.WizardDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
+import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
+import org.openide.filesystems.FileObject;
+import org.openide.util.Exceptions;
+import org.openide.windows.TopComponent;
 
 // An example action demonstrating how the wizard could be called from within
 // your code. You can move the code below wherever you need, or register an action:
 @ActionID(category="...", id="org.ide.wizard.packages.NewPackageWizardAction")
-@ActionRegistration(displayName="Nuevo Paquete")
-@ActionReference(path="Menu/Tools", position=12)
+@ActionRegistration(displayName="Nuevo Paquete", iconBase = "org/ide/wizard/packages/NewPackage.png")
+@ActionReferences({
+    @ActionReference(path="Menu/Tools", position=20),
+    @ActionReference(path="Toolbars/File", position=20)
+})
 public final class NewPackageWizardAction implements ActionListener {
 
     @Override
@@ -51,8 +60,22 @@ public final class NewPackageWizardAction implements ActionListener {
         // {0} will be replaced by WizardDesriptor.Panel.getComponent().getName()
         wiz.setTitleFormat(new MessageFormat("{0}"));
         wiz.setTitle("Nuevo paquete");
+        
         if (DialogDisplayer.getDefault().notify(wiz) == WizardDescriptor.FINISH_OPTION) {
-            // do something
+            
+            FileObject srcFolder = (FileObject) wiz.getProperty("srcFolder");
+            String name = (String) wiz.getProperty("name");
+            
+            if (isValidName(name)){
+                try {
+                    newPackage(srcFolder, name);
+                } catch (IOException ex) {
+                    Exceptions.printStackTrace(ex);
+                }
+                
+            } else {
+                showErrorDialog("El nombre de paquete no es válido. Intentelo de nuevo.");
+            }
         }
     }
     
@@ -73,5 +96,78 @@ public final class NewPackageWizardAction implements ActionListener {
     }
     
 
+        public FileObject newPackage(FileObject srcFolder, String packageName) throws IOException {
+        String route = packageName.replace('.', '/');
+        FileObject paqueteExistente = srcFolder.getFileObject(route);
 
+        if (paqueteExistente != null && paqueteExistente.isFolder()) {
+            // Ya existe, lo devolvemos directamente
+            showErrorDialog("El paquete ya existe, intente otro nombre.");
+            return paqueteExistente;
+        }
+
+        // Si no existe, lo creamos parte por parte
+        String[] partes = packageName.split("\\.");
+        FileObject carpetaActual = srcFolder;
+
+        for (String parte : partes) {
+            FileObject subcarpeta = carpetaActual.getFileObject(parte);
+            if (subcarpeta == null) {
+                subcarpeta = carpetaActual.createFolder(parte);
+            }
+            carpetaActual = subcarpeta;
+        }
+        //Refrescamos el project explorer para que refleje los cambios
+        refreshProjectExplorer();
+        
+        return carpetaActual;
+    }
+        
+    public boolean isValidName(String nombrePaquete) {
+        if (nombrePaquete == null || nombrePaquete.isEmpty()) {
+            return false;
+        }
+
+        // No puede comenzar ni terminar con punto
+        if (nombrePaquete.startsWith(".") || nombrePaquete.endsWith(".")) {
+            return false;
+        }
+
+        // Cada parte del paquete debe cumplir las reglas
+        String[] partes = nombrePaquete.split("\\.");
+        for (String parte : partes) {
+            if (!parte.matches("[a-zA-Z][a-zA-Z0-9_]*")) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+    
+    private void showErrorDialog(String msg){
+        // Mostrar advertencia
+        DialogDisplayer.getDefault().notify(
+            new NotifyDescriptor.Message(
+                msg,
+                NotifyDescriptor.ERROR_MESSAGE
+            )
+        );
+    }
+    
+        private void refreshProjectExplorer() {
+        TopComponent.Registry registry = TopComponent.getRegistry();
+        for (TopComponent tc : registry.getOpened()) {
+                if(tc instanceof ExploradorTopComponent explorer){
+                    try {
+                        explorer.refreshExplorer();
+                    } catch (IOException ex) {
+                        Exceptions.printStackTrace(ex);
+                    }
+                }
+
+        }
+    }
 }
+
+    
+

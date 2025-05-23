@@ -64,7 +64,7 @@ public class JavaProject implements Project {
     private final class Info implements  ProjectInformation {
 
     @StaticResource()
-        public static final String JAVA_ICON = "org/ide/arbol/proyectos/icon.png";
+        public static final String JAVA_ICON = "org/ide/arbol/proyectos/Project.png";
 
         @Override
         public Icon getIcon() {
@@ -101,7 +101,7 @@ public class JavaProject implements Project {
     class JavaProjectLogicalView implements  LogicalViewProvider {
 
 @StaticResource()
-       public static final String JAVA_ICON = "org/ide/arbol/proyectos/icon.png";
+       public static final String JAVA_ICON = "org/ide/arbol/proyectos/Project.png";
 
     private final JavaProject project;
 
@@ -154,6 +154,7 @@ public class JavaProject implements Project {
         @Override
         public Image getIcon(int type) {
             return ImageUtilities.loadImage(JAVA_ICON);
+            
         }
 
         @Override

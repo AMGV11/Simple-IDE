@@ -61,7 +61,8 @@ public class NewPackageWizardPanel1 implements WizardDescriptor.Panel<WizardDesc
 
     @Override
     public void storeSettings(WizardDescriptor wiz) {
-        // use wiz.putProperty to remember current panel state
+        wiz.putProperty("srcFolder", getComponent().getFolder());
+        wiz.putProperty("name", getComponent().getPackageName());
     }
 
 }

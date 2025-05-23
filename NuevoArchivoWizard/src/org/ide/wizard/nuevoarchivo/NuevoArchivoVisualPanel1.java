@@ -11,13 +11,13 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
-import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ui.OpenProjects;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
+import org.openide.loaders.DataObject;
 
 
 public final class NuevoArchivoVisualPanel1 extends JPanel {
@@ -31,7 +31,7 @@ public final class NuevoArchivoVisualPanel1 extends JPanel {
             
         avisoLabel.setVisible(false);
         
-            FileObject templateRoot = FileUtil.getConfigFile("Templates/Other");
+            FileObject templateRoot = FileUtil.getConfigFile("Templates/Custom");
            /* if (templatesFolderFO == null || !templatesFolderFO.isFolder()) {
                 return;
             }*/
@@ -60,8 +60,12 @@ public final class NuevoArchivoVisualPanel1 extends JPanel {
             super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 
             if (value instanceof FileObject) {
-                FileObject fo = (FileObject) value;
-                setText(fo.getName()); // o fo.getNameExt() si querés incluir la extensión
+                try {
+                    DataObject dobj = DataObject.find((FileObject) value);
+                    setText(dobj.getNodeDelegate().getDisplayName()); // <--- cambia esto
+                } catch (Exception ex) {
+                    setText(((FileObject) value).getName()); // Fallback si falla
+                }
             }
 
             return this;

@@ -7,6 +7,14 @@
             <suite-component/>
             <module-dependencies>
                 <dependency>
+                    <code-name-base>org.ide.output</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>1.0</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
                     <code-name-base>org.netbeans.modules.settings</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
@@ -21,6 +29,30 @@
                     <compile-dependency/>
                     <run-dependency>
                         <specification-version>7.95</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
+                    <code-name-base>org.openide.filesystems</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>9.40</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
+                    <code-name-base>org.openide.loaders</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>7.97</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
+                    <code-name-base>org.openide.modules</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>7.75</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
@@ -56,7 +88,19 @@
                     </run-dependency>
                 </dependency>
             </module-dependencies>
-            <public-packages/>
+            <public-packages>
+                <package>org.fife.io</package>
+                <package>org.fife.print</package>
+                <package>org.fife.ui.rsyntaxtextarea</package>
+                <package>org.fife.ui.rsyntaxtextarea.focusabletip</package>
+                <package>org.fife.ui.rsyntaxtextarea.folding</package>
+                <package>org.fife.ui.rsyntaxtextarea.modes</package>
+                <package>org.fife.ui.rsyntaxtextarea.parser</package>
+                <package>org.fife.ui.rsyntaxtextarea.templates</package>
+                <package>org.fife.ui.rtextarea</package>
+                <package>org.fife.util</package>
+                <package>org.ide.code.editor</package>
+            </public-packages>
             <class-path-extension>
                 <runtime-relative-path>ext/rsyntaxtextarea-3.6.0.jar</runtime-relative-path>
                 <binary-origin>release/modules/ext/rsyntaxtextarea-3.6.0.jar</binary-origin>

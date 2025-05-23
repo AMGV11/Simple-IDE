@@ -23,6 +23,8 @@ public final class NuevoArchivoVisualPanel2 extends JPanel {
      * Creates new form NuevoArchivoVisualPanel2
      */
     private final int aux = 1;
+    private String packagePath = null;
+    private FileObject srcFolder;
     
     public NuevoArchivoVisualPanel2() {
         initComponents();
@@ -117,13 +119,23 @@ public final class NuevoArchivoVisualPanel2 extends JPanel {
         return (FileObject) carpetaComboBox.getSelectedItem();
     }
     
+    public String getPath(){
+        FileObject selected = (FileObject) carpetaComboBox.getSelectedItem();
+        String packageName = FileUtil.getRelativePath(srcFolder, selected);
+        if (packageName != null) {
+            packageName = packageName.replace('/', '.');
+            System.out.println("El path es: " + packageName);
+        }
+        return packageName;
+    }
+    
     public boolean cargarCarpetas(Project proyecto) {
-        FileObject srcFolder = getSrcFolder(proyecto);
+        srcFolder = getSrcFolder(proyecto);
         List<FileObject> paquetes = new ArrayList<>();
         buscarPaquetesRecursivos(srcFolder, paquetes);
         
         // Comprobamos que "paquetes" tenga mas de una carpeta. Si no la tiene, no dejamos continuar.
-        if (paquetes.size() == aux){
+        if (paquetes.size() == aux && paquetes.get(0).equals(srcFolder)){
             DialogDisplayer.getDefault().notify(
                 new NotifyDescriptor.Message(
                 "El proyecto no tiene paquetes creados. La creación de fichero puede fallar.",
@@ -159,26 +171,21 @@ public final class NuevoArchivoVisualPanel2 extends JPanel {
 
     // Recursivamente buscamos carpetas que contengan al menos un archivo .java
     private boolean buscarPaquetesRecursivos(FileObject carpeta, List<FileObject> resultado) {
+        boolean tieneSubpaquetes = false;
+
         for (FileObject child : carpeta.getChildren()) {
-            if (child.isFolder()) {
+            if (child.isFolder() && !child.getName().startsWith(".")) {
+                tieneSubpaquetes = true;
                 buscarPaquetesRecursivos(child, resultado);
             }
         }
-        
-        /*if (resultado.isEmpty()) { 
-            DialogDisplayer.getDefault().notify(
-                new NotifyDescriptor.Message(
-                "El proyecto no tiene paquetes creados. La creación de fichero puede fallar.",
-                NotifyDescriptor.WARNING_MESSAGE
-                )  
-            );
-            return false;
-        }*/
-        
-        resultado.add(carpeta);
-        
-        return true;
 
+        // Si no tiene subpaquetes, es un paquete "hoja"
+        if (!tieneSubpaquetes) {
+            resultado.add(carpeta);
+        }
+
+        return true;
     }
     
 }

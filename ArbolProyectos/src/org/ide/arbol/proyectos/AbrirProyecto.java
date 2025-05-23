@@ -26,8 +26,8 @@ import org.openide.util.Exceptions;
     id = "org.mi.ide.acciones.AbrirProyectoAction"
 )
 @ActionRegistration(
-    displayName = "#CTL_AbrirProyecto"
-    //iconBase = null //"org/mi/ide/acciones/icono-abrir.png" // opcional, si quieres un icono
+    displayName = "AbrirProyecto",
+    iconBase = "org/ide/arbol/proyectos/OpenProject.png"
 )
 @ActionReference(
     path = "Toolbars/File", // Aquí defines que va a la barra de herramientas 'File'
@@ -37,6 +37,8 @@ import org.openide.util.Exceptions;
 
 public class AbrirProyecto extends AbstractAction implements ActionListener {
 
+    //private File workspace; // Cambia esto a tu ruta preferida
+    
     public AbrirProyecto() {
         putValue(NAME, "Abrir Proyecto...");
     }
@@ -45,8 +47,9 @@ public class AbrirProyecto extends AbstractAction implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         JFileChooser chooser = new JFileChooser();
         
-        File carpetaPorDefecto = new File("C:\\Users\\anton\\Desktop\\MisProyectos"); // Cambia esto a tu ruta preferida
-        chooser.setCurrentDirectory(carpetaPorDefecto);
+        File workspace = ProjectDirectory.getSavedProjectDirectory();
+        if (workspace.exists()) chooser.setCurrentDirectory(workspace);
+        
         chooser.setDialogTitle("Seleccionar directorio del proyecto");
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
@@ -72,4 +75,5 @@ public class AbrirProyecto extends AbstractAction implements ActionListener {
             }
         }
     }
+    
 }

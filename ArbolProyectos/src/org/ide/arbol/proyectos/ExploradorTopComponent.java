@@ -7,22 +7,14 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Stream;
 import javax.swing.Action;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
-import org.ide.code.editor.*;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectManager;
-import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.api.project.ui.OpenProjects;
-import org.netbeans.spi.project.ProjectFactory;
 import org.netbeans.spi.project.ui.*;
 import org.netbeans.spi.project.ui.support.CommonProjectActions;
-import org.netbeans.spi.project.ui.support.ProjectChooser;
-import org.openide.DialogDisplayer;
-import org.openide.WizardDescriptor;
 import org.openide.util.NbBundle.Messages;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -30,14 +22,11 @@ import org.openide.explorer.ExplorerManager;
 import org.openide.explorer.ExplorerUtils;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.loaders.TemplateWizard;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
+import org.openide.nodes.FilterNode;
 import org.openide.nodes.Node;
 import org.openide.util.Exceptions;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
-import org.openide.util.lookup.Lookups;
 import org.openide.windows.TopComponent;
 
 /**
@@ -57,13 +46,12 @@ import org.openide.windows.TopComponent;
 )
 @Messages({
     "CTL_ExploradorAction=Explorador",
-    "CTL_ExploradorTopComponent=Explorador de Archivos",
+    "CTL_ExploradorTopComponent=Proyectos",
     "HINT_ExploradorTopComponent=This is a Explorador window"
 })
 public class ExploradorTopComponent extends TopComponent implements ExplorerManager.Provider {
 
     private final ExplorerManager mgr = new ExplorerManager();
-    private String directory = "C:\\Users\\anton\\Desktop\\Prueba IDE\\WordEditorCore";
 
     public ExploradorTopComponent() {
         initComponents();
@@ -72,11 +60,10 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
         setToolTipText(Bundle.HINT_ExploradorTopComponent()); // Tooltip
         associateLookup(ExplorerUtils.createLookup(mgr, getActionMap()));
 
-        File projectsDir = new File("C:/Users/anton/Documents/NetBeansProjects"); // o un path válido
-
         OpenProjects.getDefault().addPropertyChangeListener(evt -> {
             if (OpenProjects.PROPERTY_OPEN_PROJECTS.equals(evt.getPropertyName())) {
                 mgr.setRootContext(Node.EMPTY);
+                
                 try {
                     refreshExplorer(); // Actualiza tu árbol cuando se abre un proyecto
                 } catch (IOException ex) {
@@ -105,9 +92,8 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
 
         // Carga los archivos después de que el constructor haya terminado
         SwingUtilities.invokeLater(() -> {
+            treeView.setRootVisible(false);
 
-            //Node rootNode = new JavaProject(projectsDir);
-            //mgr.setRootContext(rootNode);
         });
 
     }
@@ -121,16 +107,8 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
     private void initComponents() {
 
         jPanel1 = new javax.swing.JPanel();
-        RouteChange = new javax.swing.JButton();
         treeView = new org.openide.explorer.view.BeanTreeView();
         Refrescar = new javax.swing.JButton();
-
-        org.openide.awt.Mnemonics.setLocalizedText(RouteChange, org.openide.util.NbBundle.getMessage(ExploradorTopComponent.class, "ExploradorTopComponent.RouteChange.text")); // NOI18N
-        RouteChange.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                RouteChangeActionPerformed(evt);
-            }
-        });
 
         org.openide.awt.Mnemonics.setLocalizedText(Refrescar, org.openide.util.NbBundle.getMessage(ExploradorTopComponent.class, "ExploradorTopComponent.Refrescar.text")); // NOI18N
         Refrescar.addActionListener(new java.awt.event.ActionListener() {
@@ -144,9 +122,7 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(RouteChange)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 22, Short.MAX_VALUE)
+                .addContainerGap(154, Short.MAX_VALUE)
                 .addComponent(Refrescar)
                 .addContainerGap())
             .addComponent(treeView, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
@@ -156,9 +132,7 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                 .addComponent(treeView, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(RouteChange)
-                    .addComponent(Refrescar))
+                .addComponent(Refrescar)
                 .addContainerGap())
         );
 
@@ -174,62 +148,35 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void RouteChangeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RouteChangeActionPerformed
-        /*final JFrame parent = new JFrame();
-        String name = JOptionPane.showInputDialog(parent,
-                "Nombre del nuevo directorio?", null);
-        
-        if (name == null){
-            //No cambiar el directorio
-        } else {
-            this.directory = name;
-            FileObject rootFolder = FileUtil.toFileObject(new File(directory));
-            //Node rootNode = new FileNode(rootFolder);
-            //mgr.setRootContext(rootNode);
-        }*/
-                
-        Action newProjectAction = CommonProjectActions.newProjectAction();
-        newProjectAction.actionPerformed(null);
-        System.out.println("------Intentando poner Wizard");
-    }//GEN-LAST:event_RouteChangeActionPerformed
-
     private void RefrescarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RefrescarActionPerformed
         try {
             refreshExplorer();
         } catch (IOException ex) {
             Exceptions.printStackTrace(ex);
         }
-        for (ProjectFactory factory : Lookup.getDefault().lookupAll(ProjectFactory.class)) {
-            System.out.println("Factory: " + factory.getClass().getName());
-        }
     }//GEN-LAST:event_RefrescarActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton Refrescar;
-    private javax.swing.JButton RouteChange;
     private javax.swing.JPanel jPanel1;
     private org.openide.explorer.view.BeanTreeView treeView;
     // End of variables declaration//GEN-END:variables
+    
     @Override
     public void componentOpened() {
-        File dir = new File("C:\\Users\\anton\\Desktop\\Prueba IDE\\WordEditorCore");
+        /*File dir = new File("C:\\Users\\anton\\Desktop\\Prueba IDE\\WordEditorCore");
         FileObject fo = FileUtil.toFileObject(FileUtil.normalizeFile(dir));
         Project project = null;
+        
         try {
             project = ProjectManager.getDefault().findProject(fo);
-        } catch (IOException ex) {
-            Exceptions.printStackTrace(ex);
-        } catch (IllegalArgumentException ex) {
+        } catch (IOException | IllegalArgumentException ex) {
             Exceptions.printStackTrace(ex);
         }
         if (project != null) {
             OpenProjects.getDefault().open(new Project[]{project}, false);
             System.out.println("Proyecto Abierto");
-
-        }
-        
-
-
+        }*/
     }
 
     @Override
@@ -242,15 +189,7 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
         return mgr;
     }
 
-    private void refreshExplorer() throws IOException {
-        /*File rootDir = new File("ruta/a/tu/directorio/proyecto"); // Cambia esta ruta
-        //List<Project> projects = detector.detectProjects(rootDir);
-
-        // Mostrar los proyectos detectados en el explorador
-        for (Project project : projects) {
-           addProjectNodeToExplorer(project);
-        }*/
-
+    public void refreshExplorer() throws IOException {
         mgr.setRootContext(Node.EMPTY);
         
         // Obtener todos los proyectos abiertos SIN duplicados
@@ -267,22 +206,29 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
 
         Node root = new AbstractNode(new NodeChildren(projectNodes));
         mgr.setRootContext(root);
-        
-       /* Lookup globalLookup = Utilities.actionsGlobalContext();
-        globalLookup.lookupAll(Object.class).forEach(obj
-        -> System.out.println("Global Lookup: " + obj.getClass().getName()));*/
+        treeView.setRootVisible(false);
     }
 
     private Node createProjectNode(Project project) {
-        Lookup lookup = project.getLookup();
-        LogicalViewProvider viewProvider = lookup.lookup(LogicalViewProvider.class);
+        LogicalViewProvider viewProvider = project.getLookup().lookup(LogicalViewProvider.class);
 
         if (viewProvider != null) {
-            System.out.println("Se ha creado la vista bien");
-            return viewProvider.createLogicalView();
+            Node logicalView = viewProvider.createLogicalView();
+
+            // Personaliza todos los nodos hijos si quieres aplicar el cambio de forma global
+            return new FilterNode(logicalView, new FilterNode.Children(logicalView) {
+                @Override
+                protected Node[] createNodes(Node key) {
+                    FileObject fo = key.getLookup().lookup(FileObject.class);
+                    if (fo.isFolder()) {
+                        return new Node[]{ new FolderNode(fo) };
+                    } else {
+                        return new Node[]{ new FileNode(fo) };
+                    }
+                }
+            });
         }
 
-        System.out.println("Error al crear");
         return null;
     }
 

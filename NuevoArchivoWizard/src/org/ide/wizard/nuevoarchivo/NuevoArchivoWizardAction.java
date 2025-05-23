@@ -17,6 +17,8 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JComponent;
+import javax.swing.SwingUtilities;
+import org.ide.code.editor.CodeEditorTopComponent;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ui.OpenProjects;
 import org.openide.DialogDisplayer;
@@ -24,8 +26,8 @@ import org.openide.NotifyDescriptor;
 import org.openide.WizardDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
+import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.cookies.OpenCookie;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
 import org.openide.util.Exceptions;
@@ -37,8 +39,11 @@ import org.openide.util.Exceptions;
 // An example action demonstrating how the wizard could be called from within
 // your code. You can move the code below wherever you need, or register an action:
 @ActionID(category="...", id="org.ide.wizard.nuevoarchivo.NuevoArchivoWizardAction")
-@ActionRegistration(displayName="Nuevo Archivo")
-@ActionReference(path="Menu/Tools", position=10)
+@ActionRegistration(displayName="Nuevo Archivo", iconBase = "org/ide/wizard/nuevoarchivo/NewFileWizardIcon.png")
+@ActionReferences({
+    @ActionReference(path="Menu/Tools", position=10),
+    @ActionReference(path="Toolbars/File", position=10)
+})
 public final class NuevoArchivoWizardAction implements ActionListener {
 
     @Override
@@ -50,6 +55,7 @@ public final class NuevoArchivoWizardAction implements ActionListener {
         panels.add(new NuevoArchivoWizardPanel1());
         panels.add(new NuevoArchivoWizardPanel2());
         String[] steps = new String[panels.size()];
+        
         for (int i = 0; i < panels.size(); i++) {
             Component c = panels.get(i).getComponent();
             // Default step name to component name of panel.
@@ -73,17 +79,20 @@ public final class NuevoArchivoWizardAction implements ActionListener {
             FileObject template = (FileObject) wiz.getProperty("plantilla");
             FileObject carpeta = (FileObject) wiz.getProperty("carpeta");
             String nombre = (String) wiz.getProperty("nombre");
+            String path = (String) wiz.getProperty("path");
             
             // Reunimos los datos recogidos en el Wizard para crear el fichero que se quiera
-            createFileFromTemplate(template, carpeta, nombre);
+            createFileFromTemplate(template, carpeta, nombre, path);
             
         }
     }
     
-        private void createFileFromTemplate(FileObject templateFO, FileObject targetFolder, String name) {
+        private void createFileFromTemplate(FileObject templateFO, FileObject targetFolder, String name, String path) {
         try {
             String templateText = readTemplateContent(templateFO);
-            String finalText = templateText.replace("${name}", name);
+            String finalText = templateText
+                .replace("${name}", name)
+                .replace("${package}", path);
             
             FileObject newFile = targetFolder.createData(name, templateFO.getExt());
 
@@ -93,10 +102,25 @@ public final class NuevoArchivoWizardAction implements ActionListener {
             }
 
             DataObject newDO = DataObject.find(newFile); 
-            OpenCookie open = newDO.getLookup().lookup(OpenCookie.class);
+            
+            SwingUtilities.invokeLater(() -> {
+            CodeEditorTopComponent editor = new CodeEditorTopComponent();
+            editor.open();
+            editor.requestActive();
+                try {
+                    editor.loadFile(newFile);
+                } catch (IOException ex) {
+                    Exceptions.printStackTrace(ex);
+                }
+        });
+            
+      
+            
+            // Esto abre el editor por defecto
+            /*OpenCookie open = newDO.getLookup().lookup(OpenCookie.class);
             if (open != null) {
                 open.open();
-            }
+            }*/
 
         } catch (IOException ex) {
             Exceptions.printStackTrace(ex);
