@@ -104,7 +104,12 @@ public final class NuevoArchivoWizardAction implements ActionListener {
             DataObject newDO = DataObject.find(newFile); 
             
             SwingUtilities.invokeLater(() -> {
-            CodeEditorTopComponent editor = new CodeEditorTopComponent();
+            CodeEditorTopComponent editor = null;
+                try {
+                    editor = new CodeEditorTopComponent();
+                } catch (IOException ex) {
+                    Exceptions.printStackTrace(ex);
+                }
             editor.open();
             editor.requestActive();
                 try {

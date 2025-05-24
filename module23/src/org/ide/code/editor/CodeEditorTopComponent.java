@@ -18,6 +18,11 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import org.fife.rsta.ac.LanguageSupport;
+import org.fife.rsta.ac.java.buildpath.LibraryInfo;
+import org.fife.rsta.ac.LanguageSupportFactory;
+import org.fife.rsta.ac.java.JarManager;
+import org.fife.rsta.ac.java.JavaLanguageSupport;
 import org.fife.ui.rsyntaxtextarea.*;
 import org.fife.ui.rtextarea.*;
 import org.openide.awt.ActionID;
@@ -25,6 +30,7 @@ import org.openide.awt.ActionReference;
 import org.openide.filesystems.FileObject;
 import org.openide.windows.TopComponent;
 import org.openide.util.NbBundle.Messages;
+import org.fife.ui.autocomplete.AutoCompletion;
 
 /**
  * Top component which displays something.
@@ -36,7 +42,7 @@ import org.openide.util.NbBundle.Messages;
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
 @TopComponent.Registration(mode = "editor", openAtStartup = false)
-@ActionID(category = "Window", id = "org.ide.code.editor.CodeEditorTopComponent")
+@ActionID(category = "Window", id = "org.ide.code.editor.CodeEditorTopComponent") 
 @ActionReference(path = "Menu/Window" /*, position = 333 */)
 @TopComponent.OpenActionRegistration(
         displayName = "#CTL_EditorAction",
@@ -52,7 +58,7 @@ public final class CodeEditorTopComponent extends TopComponent {
     private FileObject currentFO = null;
     private boolean modifiedState = false;
     
-    public CodeEditorTopComponent() {
+    public CodeEditorTopComponent() throws IOException {
         initComponents();
         setName(Bundle.CTL_EditorTopComponent());
         setToolTipText(Bundle.HINT_EditorTopComponent());
@@ -60,7 +66,11 @@ public final class CodeEditorTopComponent extends TopComponent {
         rSyntaxTextArea1.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA); // Puedes cambiarlo según el tipo de archivo
         rSyntaxTextArea1.setCodeFoldingEnabled(true);
         rSyntaxTextArea1.setAntiAliasingEnabled(true);
+        
+        JavaLanguageSupport javaLanguageSupport = new JavaLanguageSupport();
+        javaLanguageSupport.getJarManager().addClassFileSource(new JDK9ClasspathLibraryInfo());
 
+        javaLanguageSupport.install(rSyntaxTextArea1);
         
         RTextScrollPane sp = new RTextScrollPane(rSyntaxTextArea1);
         setLayout(new BorderLayout());
@@ -68,7 +78,7 @@ public final class CodeEditorTopComponent extends TopComponent {
 
     }
     
-        public CodeEditorTopComponent(FileObject fileObject) throws IOException {
+    public CodeEditorTopComponent(FileObject fileObject) throws IOException {
         initComponents();
         setName(Bundle.CTL_EditorTopComponent());
         setToolTipText(Bundle.HINT_EditorTopComponent());
@@ -76,17 +86,12 @@ public final class CodeEditorTopComponent extends TopComponent {
         rSyntaxTextArea1.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA); // Puedes cambiarlo según el tipo de archivo
         rSyntaxTextArea1.setCodeFoldingEnabled(true);
         rSyntaxTextArea1.setAntiAliasingEnabled(true);
+        
+        JavaLanguageSupport javaLanguageSupport = new JavaLanguageSupport();
+        javaLanguageSupport.getJarManager().addClassFileSource(new JDK9ClasspathLibraryInfo());
 
-        //Ejemplo Parser para errores
-        /*class ExampleParser extends AbstractParser {
-        @Override
-        public ParseResult parse(RSyntaxDocument document, String style) {
-            DefaultParseResult result = new DefaultParseResult(this);
-            result.addNotice(new DefaultParserNotice(this, "Message", 4));
-            return result;
-            }
-        }
-        rSyntaxTextArea1.addParser(new ExampleParser());*/
+        // ¡Instálalo directamente!
+        javaLanguageSupport.install(rSyntaxTextArea1);
         
         RTextScrollPane sp = new RTextScrollPane(rSyntaxTextArea1);
         setLayout(new BorderLayout());
