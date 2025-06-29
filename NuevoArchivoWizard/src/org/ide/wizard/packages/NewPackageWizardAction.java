@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JComponent;
 import org.ide.arbol.proyectos.ExploradorTopComponent;
+import org.lookup.aux.RefreshExplorerCommand;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ui.OpenProjects;
 import org.openide.DialogDisplayer;
@@ -24,6 +25,8 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.filesystems.FileObject;
 import org.openide.util.Exceptions;
+import org.openide.util.lookup.AbstractLookup;
+import org.openide.util.lookup.InstanceContent;
 import org.openide.windows.TopComponent;
 
 // An example action demonstrating how the wizard could be called from within
@@ -36,6 +39,7 @@ import org.openide.windows.TopComponent;
 })
 public final class NewPackageWizardAction implements ActionListener {
 
+    
     @Override
     public void actionPerformed(ActionEvent e) {
         if (!anyProjectOpen()){return;}
@@ -69,6 +73,7 @@ public final class NewPackageWizardAction implements ActionListener {
             if (isValidName(name)){
                 try {
                     newPackage(srcFolder, name);
+                    refreshProjectExplorer();
                 } catch (IOException ex) {
                     Exceptions.printStackTrace(ex);
                 }
@@ -154,19 +159,26 @@ public final class NewPackageWizardAction implements ActionListener {
         );
     }
     
-        private void refreshProjectExplorer() {
+    private void refreshProjectExplorer() {
         TopComponent.Registry registry = TopComponent.getRegistry();
         for (TopComponent tc : registry.getOpened()) {
-                if(tc instanceof ExploradorTopComponent explorer){
-                    try {
-                        explorer.refreshExplorer();
-                    } catch (IOException ex) {
-                        Exceptions.printStackTrace(ex);
-                    }
+            if(tc instanceof ExploradorTopComponent explorer){
+                try {
+                    explorer.refreshExplorer();
+                } catch (IOException ex) {
+                    Exceptions.printStackTrace(ex);
                 }
-
+            }
         }
     }
+    
+    /*private void refreshExplorerAction(){
+        InstanceContent content = new InstanceContent();
+        AbstractLookup lookup = new AbstractLookup(content);
+        content.add(new RefreshExplorerCommand());
+
+    }*/
+      
 }
 
     

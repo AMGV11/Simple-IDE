@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
+import org.ide.arbol.proyectos.ExploradorTopComponent;
 import org.ide.code.editor.CodeEditorTopComponent;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ui.OpenProjects;
@@ -31,6 +32,7 @@ import org.openide.awt.ActionRegistration;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
 import org.openide.util.Exceptions;
+import org.openide.windows.TopComponent;
 
 // Clase encargada del boton "Nuevo archivo" del IDE
 // Hay que expandirla para que haga paquetes en los proyectos
@@ -83,6 +85,7 @@ public final class NuevoArchivoWizardAction implements ActionListener {
             
             // Reunimos los datos recogidos en el Wizard para crear el fichero que se quiera
             createFileFromTemplate(template, carpeta, nombre, path);
+            refreshProjectExplorer();
             
         }
     }
@@ -104,28 +107,8 @@ public final class NuevoArchivoWizardAction implements ActionListener {
             DataObject newDO = DataObject.find(newFile); 
             
             SwingUtilities.invokeLater(() -> {
-            CodeEditorTopComponent editor = null;
-                try {
-                    editor = new CodeEditorTopComponent();
-                } catch (IOException ex) {
-                    Exceptions.printStackTrace(ex);
-                }
-            editor.open();
-            editor.requestActive();
-                try {
-                    editor.loadFile(newFile);
-                } catch (IOException ex) {
-                    Exceptions.printStackTrace(ex);
-                }
+                newCodeEditor(newFile);
         });
-            
-      
-            
-            // Esto abre el editor por defecto
-            /*OpenCookie open = newDO.getLookup().lookup(OpenCookie.class);
-            if (open != null) {
-                open.open();
-            }*/
 
         } catch (IOException ex) {
             Exceptions.printStackTrace(ex);
@@ -158,6 +141,29 @@ public final class NuevoArchivoWizardAction implements ActionListener {
             return false;
         }
         return true;
+    }
+    
+    private void refreshProjectExplorer() {
+        TopComponent.Registry registry = TopComponent.getRegistry();
+        for (TopComponent tc : registry.getOpened()) {
+            if(tc instanceof ExploradorTopComponent explorer){
+                try {
+                    explorer.refreshExplorer();
+                } catch (IOException ex) {
+                    Exceptions.printStackTrace(ex);
+                }
+            }
+        }
+    }
+    
+    private void newCodeEditor(FileObject fileObject){
+        try {
+            CodeEditorTopComponent newEditor = new CodeEditorTopComponent(fileObject);
+            newEditor.open();
+            newEditor.requestActive();
+        } catch (IOException ex) {
+            Exceptions.printStackTrace(ex);
+        }
     }
 
 }
