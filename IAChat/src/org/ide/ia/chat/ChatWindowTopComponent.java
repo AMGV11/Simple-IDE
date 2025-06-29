@@ -4,6 +4,21 @@
  */
 package org.ide.ia.chat;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.util.Arrays;
+import java.util.Properties;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -40,6 +55,9 @@ public final class ChatWindowTopComponent extends TopComponent {
         initComponents();
         setName(Bundle.CTL_ChatWindowTopComponent());
         setToolTipText(Bundle.HINT_ChatWindowTopComponent());
+        
+        SendButton.addActionListener(e -> sendMessage());
+        UserText.addActionListener(e -> sendMessage());
 
     }
 
@@ -51,14 +69,18 @@ public final class ChatWindowTopComponent extends TopComponent {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jScrollPane1 = new javax.swing.JScrollPane();
+        jScrollPane1 = new javax.swing.JScrollPane(chat,
+            jScrollPane1.VERTICAL_SCROLLBAR_AS_NEEDED,
+            jScrollPane1.HORIZONTAL_SCROLLBAR_NEVER);
         chat = new javax.swing.JTextArea();
         UserText = new javax.swing.JTextField();
         SendButton = new javax.swing.JButton();
 
         chat.setEditable(false);
         chat.setColumns(20);
+        chat.setLineWrap(true);
         chat.setRows(5);
+        chat.setWrapStyleWord(true);
         jScrollPane1.setViewportView(chat);
 
         UserText.setText(org.openide.util.NbBundle.getMessage(ChatWindowTopComponent.class, "ChatWindowTopComponent.UserText.text")); // NOI18N
@@ -128,4 +150,101 @@ public final class ChatWindowTopComponent extends TopComponent {
         String version = p.getProperty("version");
         // TODO read your settings according to their version
     }
+    
+        private void sendMessage() {
+        String userInput = UserText.getText().trim();
+        
+        if (userInput.isEmpty()) return;
+
+        chat.append("Tú: " + userInput + "\n\n");
+        UserText.setText("");
+        mostrarAnimacionEspera(); // justo antes de hacer la llamada a la IA
+        // Llamada a Ollama en un hilo separado
+        new Thread(() -> {
+            try {
+                String response = askOllama(userInput);
+                SwingUtilities.invokeLater(() -> {
+                    ocultarAnimacionEspera(); // después de recibir la respuesta
+                    chat.append("\nQwen: " + response + "\n\n");
+                });
+            } catch (Exception ex) {
+                SwingUtilities.invokeLater(() -> {
+                    ocultarAnimacionEspera(); // después de recibir la respuesta
+                    chat.append("⚠️ Error: " + ex.getMessage() + "\n\n");
+                });
+            }
+        }).start();
+    }
+        
+    private String askOllama(String prompt) throws IOException, org.json.simple.parser.ParseException {
+        // Construcción del JSON usando JSON.simple
+        JSONObject json = new JSONObject();
+        json.put("model", "qwen2.5-coder:latest");
+        json.put("system", "Eres Qwen, y ayudaras a programadores principiantes Java");
+        json.put("prompt", prompt); // No necesitas escapar manualmente, JSON.simple lo hace
+        json.put("stream", false);
+
+        URL url = new URL("http://localhost:11434/api/generate");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setDoOutput(true);
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/json");
+
+        try (OutputStream os = conn.getOutputStream()) {
+            os.write(json.toJSONString().getBytes(StandardCharsets.UTF_8));
+        }
+
+        if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
+            throw new IOException("Error al contactar Ollama: " + conn.getResponseCode());
+        }
+
+        try (InputStream is = conn.getInputStream()) {
+            String responseBody = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+
+            // Parsear la respuesta JSON
+            JSONParser parser = new JSONParser();
+            JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+            String rawResponse = (String) responseJson.get("response");
+            return rawResponse != null ? rawResponse.replace("\\n", "\n") : "";
+        }
+    }
+        
+    private Timer animacionTimer;
+    private String baseTextoAnimacion = "Esperando respuesta";
+
+    private void mostrarAnimacionEspera() {
+    animacionTimer = new Timer(500, new ActionListener() {
+        int puntos = 0;
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            puntos = (puntos + 1) % 4;
+            String dots = ".".repeat(puntos);
+            String nuevaLinea = baseTextoAnimacion + dots;
+
+            // Reemplaza la última línea del JTextArea
+            String[] lineas = chat.getText().split("\n");
+            lineas[lineas.length - 1] = nuevaLinea;
+            chat.setText(String.join("\n", lineas));
+        }
+    });
+
+    // Añade línea inicial antes de empezar
+    chat.append(baseTextoAnimacion + "\n");
+    animacionTimer.start();
+}
+    
+    private void ocultarAnimacionEspera() {
+    if (animacionTimer != null && animacionTimer.isRunning()) {
+        animacionTimer.stop();
+    }
+
+    // Opcional: borrar la línea de "esperando..."
+    String[] lineas = chat.getText().split("\n");
+    if (lineas.length > 0 && lineas[lineas.length - 1].startsWith(baseTextoAnimacion)) {
+        chat.setText(String.join("\n", Arrays.copyOf(lineas, lineas.length - 1)));
+    }
+}
+   
+
 }
