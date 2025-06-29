@@ -15,9 +15,18 @@
         description = "Description.html",
         scriptEngine="freemarker"
     ),
+        @TemplateRegistration(
+        folder = "Custom",
+        //iconBase="org/myorg/additionalfiletemplates/Datasource.gif",
+        displayName = "#InterfaceTemplate_displayName",
+        content = "InterfaceTemplate.java.template",
+        description = "Description.html",
+        scriptEngine="freemarker"
+    ),
 })
 @Messages({"HTMLtemplate_displayName=Empty HTML file",
-        "JavaTemplate_displayName=Archivo Java vacio"
+        "JavaTemplate_displayName=Clase Java",
+        "InterfaceTemplate_displayName=Interfaz Java"
         })
 package org.ide.additionalfiletemplates;
 
