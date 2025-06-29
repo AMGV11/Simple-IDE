@@ -1,6 +1,7 @@
 Manifest-Version: 1.0
 AutoUpdate-Show-In-Client: true
 OpenIDE-Module: org.ide.topComponentDemo
+OpenIDE-Module-Layer: org/ide/code/editor/layer.xml
 OpenIDE-Module-Localizing-Bundle: org/ide/code/editor/Bundle.properties
 OpenIDE-Module-Requires: org.openide.windows.WindowManager
 OpenIDE-Module-Specification-Version: 1.0

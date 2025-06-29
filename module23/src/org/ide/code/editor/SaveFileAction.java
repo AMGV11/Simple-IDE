@@ -9,6 +9,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
+import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusDisplayer;
 import org.openide.util.Exceptions;
@@ -26,25 +27,37 @@ import org.openide.windows.TopComponent;
     iconBase = "org/ide/code/editor/Save.png",
     displayName = "Guardar"
 )
-@ActionReference(path = "Toolbars/File", position = 250)
+@ActionReferences({
+    @ActionReference(path = "Toolbars/File", position = 250), // Icono en Toolbars
+    @ActionReference(path = "Shortcuts", name = "C-S") // Atajo con Ctrl + S
+})
 public class SaveFileAction implements ActionListener {
-
+        
+    private final SaveCookie context;
+    
+    public SaveFileAction(SaveCookie context){
+        this.context = context;
+    }
+    
     @Override
     public void actionPerformed(ActionEvent e) {
         // Obtener el editor activo
         TopComponent codeEditor = TopComponent.getRegistry().getActivated();
+        context.save();
 
         if (codeEditor instanceof CodeEditorTopComponent) {
             try {
-                ((CodeEditorTopComponent) codeEditor).saveFile(); // implementa este método
+                ((CodeEditorTopComponent) codeEditor).saveFile();
                 String currentFile = ((CodeEditorTopComponent) codeEditor).getCurrentFO().getNameExt();
                 ((CodeEditorTopComponent) codeEditor).setState(false);
-                System.out.println("--- IDE --- Archivo " + currentFile + " guardado con exito.");
+                System.out.println("[INFO] Archivo " + currentFile + " guardado con exito.");
+                Compile.getInstance().compile();
+                
             } catch (IOException ex) {
                 Exceptions.printStackTrace(ex);
             }
         } else {
-            StatusDisplayer.getDefault().setStatusText("No hay un editor activo.");
-        }    }
-    
+            StatusDisplayer.getDefault().setStatusText("[ERROR] No hay un editor activo.");
+        }    
+    }
 }

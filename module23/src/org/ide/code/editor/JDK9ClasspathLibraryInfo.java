@@ -163,14 +163,14 @@ public class JDK9ClasspathLibraryInfo extends LibraryInfo
 
     private ClassFile createClassFileImpl(String res) throws IOException
     {
-        System.out.println("Create class file IMPL for entry: " + res);
+        //System.out.println("Create class file IMPL for entry: " + res);
 
         ClassFile cf = null;
         // need to get the binary form
 
         String module = classNameToModule.get(res);
         
-        System.out.println("Antes de Buscando clase: " + res + " en modulo: " + module);
+        //System.out.println("Antes de Buscando clase: " + res + " en modulo: " + module);
         if (module != null && !module.isEmpty())
         {
             try (URLClassLoader loader = new URLClassLoader(new URL[]{pathToJrt.toUri().toURL()});
@@ -178,7 +178,7 @@ public class JDK9ClasspathLibraryInfo extends LibraryInfo
                          Collections.emptyMap(),
                          loader))
             {
-                System.out.println("Buscando clase: " + res + " en módulo: " + module);
+                //System.out.println("Buscando clase: " + res + " en módulo: " + module);
                 byte[] result = Files.readAllBytes(fs.getPath("/modules/" + module + "/" + res));
                 // if succeeded, we create the ClassFile
                 if (result.length > 0)
@@ -190,17 +190,17 @@ public class JDK9ClasspathLibraryInfo extends LibraryInfo
                     }
                     catch (Exception ex)
                     {
-                        System.out.println("Excepcion 1 Buscando clase: " + res + " en módulo: " + module);
+                        //System.out.println("Excepcion 1 Buscando clase: " + res + " en módulo: " + module);
                         // ignore exception
                     }
                 }
             }
             catch (Exception ex)
             {
-                System.out.println("Excepcion 2 Buscando clase: " + res + " en módulo: " + module);
+                //System.out.println("Excepcion 2 Buscando clase: " + res + " en módulo: " + module);
             }
         }
-        System.out.println("Salto if 2 Buscando clase: " + res + " en módulo: " + module);
+        //System.out.println("Salto if 2 Buscando clase: " + res + " en módulo: " + module);
         return cf;
     }
 
