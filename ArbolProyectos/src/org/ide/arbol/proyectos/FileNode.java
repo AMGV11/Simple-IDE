@@ -4,17 +4,20 @@
  */
 package org.ide.arbol.proyectos;
 
-import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import org.ide.code.editor.CodeEditorTopComponent;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.nodes.FilterNode;
 import org.openide.util.Exceptions;
 import org.openide.filesystems.FileObject;
+import org.openide.loaders.DataObject;
+import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.nodes.AbstractNode;
-import org.openide.util.ImageUtilities;
+import org.openide.nodes.Node;
 import org.openide.util.lookup.Lookups;
 import org.openide.windows.TopComponent;
 
@@ -22,15 +25,23 @@ public class FileNode extends FilterNode {
 
     private final FileObject fileObject;
 
-    public FileNode(FileObject fileObject) {
-        super(
-            new AbstractNode(Children.LEAF, Lookups.singleton(fileObject)), // Nodo original
-            Children.LEAF,
-            Lookups.singleton(fileObject)
-        );
-        setDisplayName(fileObject.getNameExt());
-        this.fileObject = fileObject;
-    }
+    public FileNode(FileObject fileObject) throws DataObjectNotFoundException {
+            super(
+        new AbstractNode(Children.LEAF, Lookups.fixed(
+            fileObject,
+            DataObject.find(fileObject)  
+        )),
+        Children.LEAF,
+        Lookups.fixed(
+            fileObject,
+            DataObject.find(fileObject)
+        )
+    );
+    setDisplayName(fileObject.getNameExt());
+    this.fileObject = fileObject;
+}
+    
+
     
     //Para ponerle imagen
     /*@Override
@@ -57,13 +68,18 @@ public class FileNode extends FilterNode {
     @Override
     public Action[] getActions(boolean context) {
         return new Action[]{
-            new AbstractAction("Abrir en el editor") {
+            new AbstractAction("Abrir") {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     abrirEditor();
                 }
             },
-            // Aquí puedes agregar más acciones si quieres
+                new AbstractAction("Borrar") {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    borrarArchivo();
+                }
+            }
         };
     }
 
@@ -75,13 +91,9 @@ public class FileNode extends FilterNode {
             //Intentamos reutilizar un editor vacio 
                 if(tc instanceof CodeEditorTopComponent editor){
                     FileObject file = editor.getCurrentFO();
-                    if(file == null){
-                        try {
-                            editor.loadFile(fileObject);
-                        } catch (IOException ex) {
-                            Exceptions.printStackTrace(ex);
-                        }
-                        editor.requestFocus();
+                    
+                    if(file.equals(fileObject)){
+                        System.out.println("Ya esta abierto el archivo.");
                         return;
                     }
                 }
@@ -89,6 +101,37 @@ public class FileNode extends FilterNode {
         //Abrimos un nuevo editor si no se reutiliza ninguno
         newCodeEditor(fileObject);
     }
+    
+    private void borrarArchivo() {
+    DataObject dob = getLookup().lookup(DataObject.class);
+    Node parentFolder = this.getParentNode();
+    if (dob != null) {
+        try {
+            boolean confirmado = DialogDisplayer.getDefault().notify(
+                new NotifyDescriptor.Confirmation(
+                    "¿Seguro que quieres eliminar el archivo " + dob.getPrimaryFile().getNameExt() + "?",
+                    NotifyDescriptor.YES_NO_OPTION)
+            ) == NotifyDescriptor.YES_OPTION;
+
+            if (confirmado) {
+                dob.delete();
+                // Opcional: refrescar el nodo padre para actualizar el árbol
+                // Esto suele pasar automáticamente pero depende del Children que uses
+            }
+        } catch (IOException ex) {
+            // Mostrar error al usuario
+            DialogDisplayer.getDefault().notify(
+                new NotifyDescriptor.Message("Error al eliminar el archivo: " + ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE)
+            );
+        }
+    }
+    //Actualizamos la carpeta en el explorador
+    if (parentFolder instanceof FolderNode) {
+        ((FolderNode.FolderChildren) parentFolder.getChildren()).refreshKeys();
+    }
+    
+}
+    
     
     private void newCodeEditor(FileObject fileObject){
         try {

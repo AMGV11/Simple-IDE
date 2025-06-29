@@ -18,7 +18,6 @@ public class JavaProjectFactory implements  ProjectFactory {
     public static final String PROJECT_FILE = "src";
 
     //Specifies when a project is a project, i.e.,
-    //if "customer.txt" is present in a folder:*
     @Override
     public boolean isProject(FileObject projectDirectory) {
         return projectDirectory.getFileObject(PROJECT_FILE) != null;
@@ -32,7 +31,7 @@ public class JavaProjectFactory implements  ProjectFactory {
 
     @Override
     public void saveProject(final Project project) throws IOException, ClassCastException {
-        // leave unimplemented for the moment
+       
     }
 
     /*@Override //Por si implementamos ProjectFactory2

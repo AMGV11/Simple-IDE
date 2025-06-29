@@ -7,6 +7,7 @@ package org.ide.arbol.proyectos;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
@@ -17,6 +18,9 @@ import org.netbeans.api.project.ProjectInformation;
 import org.netbeans.api.project.ui.OpenProjects;
 import org.netbeans.spi.project.ProjectState;
 import org.netbeans.spi.project.ui.LogicalViewProvider;
+import org.netbeans.spi.project.ui.support.NodeFactorySupport;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.awt.StatusDisplayer;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataFolder;
@@ -30,18 +34,19 @@ import org.openide.util.ImageUtilities;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.Lookups;
 import org.openide.util.lookup.ProxyLookup;
+import org.openide.windows.TopComponent;
 
 public class JavaProject implements Project {
 
     private final FileObject projectDir;
     private final ProjectState state;
     private Lookup lkp;
-    
+
     JavaProject(FileObject dir, ProjectState state) {
         this.projectDir = dir;
         this.state = state;
     }
-    
+
     @Override
     public FileObject getProjectDirectory() {
         return projectDir;
@@ -51,19 +56,17 @@ public class JavaProject implements Project {
     public Lookup getLookup() {
         if (lkp == null) {
             lkp = Lookups.fixed(new Object[]{
-                
+                this,
                 new Info(),
-                new JavaProjectLogicalView(this),
-                
-            });
+                new JavaProjectLogicalView(this),});
         }
-        
+
         return lkp;
     }
-    
-    private final class Info implements  ProjectInformation {
 
-    @StaticResource()
+    private final class Info implements ProjectInformation {
+
+        @StaticResource()
         public static final String JAVA_ICON = "org/ide/arbol/proyectos/Project.png";
 
         @Override
@@ -97,117 +100,159 @@ public class JavaProject implements Project {
         }
 
     }
-    
-    class JavaProjectLogicalView implements  LogicalViewProvider {
 
-@StaticResource()
-       public static final String JAVA_ICON = "org/ide/arbol/proyectos/Project.png";
+    class JavaProjectLogicalView implements LogicalViewProvider {
 
-    private final JavaProject project;
+        @StaticResource()
+        public static final String JAVA_ICON = "org/ide/arbol/proyectos/Project.png";
 
-    public JavaProjectLogicalView(JavaProject project) {
-        this.project = project;
-    }
+        private final JavaProject project;
 
-    @Override
-    public Node createLogicalView() {
-        try {
-            //Obtain the project directory's node:
-            FileObject projectDirectory = project.getProjectDirectory();
-            DataFolder projectFolder = DataFolder.findFolder(projectDirectory);
-            Node nodeOfProjectFolder = projectFolder.getNodeDelegate();
-            //Decorate the project directory's node:
-            return new ProjectNode(nodeOfProjectFolder, project);
-        } catch (DataObjectNotFoundException donfe) {
-            Exceptions.printStackTrace(donfe);
-            //Fallback-the directory couldn't be created -
-            //read-only filesystem or something evil happened
-            return new AbstractNode(Children.LEAF);
-        }
-    }
-
-    private final class ProjectNode extends FilterNode {
-
-        final JavaProject project;
-
-        public ProjectNode(Node node, JavaProject project)
-            throws DataObjectNotFoundException {
-            super(node,
-                    new FilterNode.Children(node),
-                    new ProxyLookup(
-                    new Lookup[]{
-                        Lookups.singleton(project),
-                        node.getLookup()
-                    }));
+        public JavaProjectLogicalView(JavaProject project) {
             this.project = project;
         }
 
         @Override
-        public Action[] getActions(boolean context) {
-            return new Action[] {
-                ProjectActions.newFile(project),
-                ProjectActions.delete(project),
-                ProjectActions.close(project)
+        public Node createLogicalView() {
+            try {
+                //Obtain the project directory's node:
+                FileObject projectDirectory = project.getProjectDirectory();
+                DataFolder projectFolder = DataFolder.findFolder(projectDirectory);
+                Node nodeOfProjectFolder = projectFolder.getNodeDelegate();
+                //Decorate the project directory's node:
+                return new ProjectNode(nodeOfProjectFolder, project);
+            } catch (DataObjectNotFoundException donfe) {
+                Exceptions.printStackTrace(donfe);
+                //Fallback-the directory couldn't be created -
+                //read-only filesystem or something evil happened
+                return new AbstractNode(Children.LEAF);
+            }
+        }
+
+        private final class ProjectNode extends FilterNode {
+
+            final JavaProject project;
+
+            public ProjectNode(Node node, JavaProject project)
+                    throws DataObjectNotFoundException {
+                super(node,
+                        NodeFactorySupport.createCompositeChildren(
+                                project,
+                                "Projects/org-java-project/Nodes"),
+                        //new FilterNode.Children(node),
+                        new ProxyLookup(
+                                new Lookup[]{
+                                    Lookups.singleton(project),
+                                    node.getLookup()
+                                }));
+                this.project = project;
+            }
+
+            @Override
+            public Action[] getActions(boolean context) {
+                return new Action[]{
+                    //ProjectActions.newFile(project),
+                    ProjectActions.delete(project),
+                    ProjectActions.close(project)
+                };
+            }
+
+            @Override
+            public Image getIcon(int type) {
+                return ImageUtilities.loadImage(JAVA_ICON);
+
+            }
+
+            @Override
+            public Image getOpenedIcon(int type) {
+                return getIcon(type);
+            }
+
+            @Override
+            public String getDisplayName() {
+                return project.getProjectDirectory().getName();
+            }
+
+        }
+
+        @Override
+        public Node findPath(Node root, Object target) {
+            //leave unimplemented for now
+            return null;
+        }
+
+    }
+
+    public class ProjectActions {
+
+        public static Action delete(Project project) {
+            return new AbstractAction("Eliminar proyecto") {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (project instanceof JavaProject javaProject) {
+                        NotifyDescriptor.Confirmation confirm = new NotifyDescriptor.Confirmation(
+                            "¿Estás seguro de que deseas eliminar el proyecto '"
+                            + javaProject.getProjectDirectory().getNameExt() + "'?",
+                            "Confirmar eliminación",
+                            NotifyDescriptor.YES_NO_OPTION
+                        );
+                        Object result = DialogDisplayer.getDefault().notify(confirm);
+                        
+                        if (result == NotifyDescriptor.YES_OPTION) {
+                            javaProject.delete();
+                            refreshProjectExplorer();
+                        }
+                    }
+                }
             };
         }
 
-        @Override
-        public Image getIcon(int type) {
-            return ImageUtilities.loadImage(JAVA_ICON);
-            
+        public static Action close(Project project) {
+            return new AbstractAction("Cerrar proyecto") {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    OpenProjects.getDefault().close(new Project[]{project});
+                    StatusDisplayer.getDefault().setStatusText("Proyecto cerrado");
+                }
+            };
         }
+    }
 
-        @Override
-        public Image getOpenedIcon(int type) {
-            return getIcon(type);
+    public void delete() {
+        try {
+            // Cierra el proyecto si está abierto
+            OpenProjects.getDefault().close(new Project[]{this});
+
+            // Borra recursivamente el contenido del directorio
+            deleteRecursively(projectDir);
+
+            // Notifica a NetBeans que el proyecto fue eliminado
+            state.notifyDeleted();
+
+            StatusDisplayer.getDefault().setStatusText("Proyecto eliminado: " + projectDir.getNameExt());
+        } catch (IOException ex) {
+            Exceptions.printStackTrace(ex);
         }
+    }
 
-        @Override
-        public String getDisplayName() {
-            return project.getProjectDirectory().getName();
+    private void deleteRecursively(FileObject fo) throws IOException {
+        for (FileObject child : fo.getChildren()) {
+            deleteRecursively(child);
         }
-
+        fo.delete();
     }
 
-    @Override
-    public Node findPath(Node root, Object target) {
-        //leave unimplemented for now
-        return null;
-    }
-
-    }
-    
-    public class ProjectActions {
-
-    public static Action newFile(Project project) {
-        return new AbstractAction("Nuevo archivo") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Lógica para crear nuevo archivo
-                // Abrir New Archive Wizard
+    private static void refreshProjectExplorer() {
+        TopComponent.Registry registry = TopComponent.getRegistry();
+        for (TopComponent tc : registry.getOpened()) {
+            if (tc instanceof ExploradorTopComponent explorer) {
+                try {
+                    explorer.refreshExplorer();
+                } catch (IOException ex) {
+                    Exceptions.printStackTrace(ex);
+                }
             }
-        };
+        }
     }
 
-    public static Action delete(Project project) {
-        return new AbstractAction("Eliminar proyecto") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Lógica para eliminar proyecto
-                
-            }
-        };
-    }
-
-    public static Action close(Project project) {
-        return new AbstractAction("Cerrar proyecto") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                OpenProjects.getDefault().close(new Project[]{project});
-                StatusDisplayer.getDefault().setStatusText("Proyecto cerrado");
-            }
-        };
-    }
-}
-    
 }

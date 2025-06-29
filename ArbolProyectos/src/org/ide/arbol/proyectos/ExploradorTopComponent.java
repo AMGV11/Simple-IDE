@@ -2,26 +2,22 @@ package org.ide.arbol.proyectos;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import javax.swing.Action;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import org.netbeans.api.project.Project;
-import org.netbeans.api.project.ProjectManager;
 import org.netbeans.api.project.ui.OpenProjects;
 import org.netbeans.spi.project.ui.*;
-import org.netbeans.spi.project.ui.support.CommonProjectActions;
 import org.openide.util.NbBundle.Messages;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.explorer.ExplorerManager;
 import org.openide.explorer.ExplorerUtils;
 import org.openide.filesystems.FileObject;
-import org.openide.filesystems.FileUtil;
+import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.nodes.FilterNode;
@@ -55,6 +51,7 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
 
     public ExploradorTopComponent() {
         initComponents();
+        
         setName(Bundle.CTL_ExploradorTopComponent()); // Nombre interno
         setDisplayName(Bundle.CTL_ExploradorTopComponent()); // Nombre visible en la pestaña
         setToolTipText(Bundle.HINT_ExploradorTopComponent()); // Tooltip
@@ -72,7 +69,11 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
             }
         });
 
-        // Agregar un solo listener al árbol
+       
+        treeView.setDragSource(true);    // habilita arrastrar
+        treeView.setDropTarget(true);    // habilita soltar
+        
+         // Agregar un solo listener al árbol
         treeView.getViewport().getView().addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -164,24 +165,12 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
     
     @Override
     public void componentOpened() {
-        /*File dir = new File("C:\\Users\\anton\\Desktop\\Prueba IDE\\WordEditorCore");
-        FileObject fo = FileUtil.toFileObject(FileUtil.normalizeFile(dir));
-        Project project = null;
-        
-        try {
-            project = ProjectManager.getDefault().findProject(fo);
-        } catch (IOException | IllegalArgumentException ex) {
-            Exceptions.printStackTrace(ex);
-        }
-        if (project != null) {
-            OpenProjects.getDefault().open(new Project[]{project}, false);
-            System.out.println("Proyecto Abierto");
-        }*/
+
     }
 
     @Override
     public void componentClosed() {
-        // TODO add custom code on component closing
+
     }
 
     @Override
@@ -192,10 +181,10 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
     public void refreshExplorer() throws IOException {
         mgr.setRootContext(Node.EMPTY);
         
-        // Obtener todos los proyectos abiertos SIN duplicados
+        // Obtener todos los proyectos abiertos
         Project[] openProjects = OpenProjects.getDefault().getOpenProjects();
 
-        // Creamos un Set para evitar duplicados (opcional, OpenProjects ya los filtra normalmente)
+        // Creamos un Set para evitar duplicados
         Set<Project> uniqueProjects = new HashSet<>(Arrays.asList(openProjects));
 
         // Mapeamos los nodos de los proyectos abiertos
@@ -203,7 +192,7 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
                     .map(this::createProjectNode)
                     .filter(n -> n != null)
                     .toArray(Node[]::new);
-
+        
         Node root = new AbstractNode(new NodeChildren(projectNodes));
         mgr.setRootContext(root);
         treeView.setRootVisible(false);
@@ -218,13 +207,33 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
             // Personaliza todos los nodos hijos si quieres aplicar el cambio de forma global
             return new FilterNode(logicalView, new FilterNode.Children(logicalView) {
                 @Override
+                @SuppressWarnings("empty-statement")
+                
                 protected Node[] createNodes(Node key) {
                     FileObject fo = key.getLookup().lookup(FileObject.class);
-                    if (fo.isFolder()) {
-                        return new Node[]{ new FolderNode(fo) };
-                    } else {
-                        return new Node[]{ new FileNode(fo) };
+                    
+                    if (fo!=null){
+                        
+                        if (fo.isFolder()) {
+                                                       
+                            return new Node[]{     
+                                new FolderNode(fo) {
+                                    @Override
+                                    public String getDisplayName() {
+                                        return "Carpeta " + fo.getName();
+                                    }
+                                } 
+                            };
+                            
+                        } else {
+                            try {
+                                return new Node[]{ new FileNode(fo) };
+                            } catch (DataObjectNotFoundException ex) {
+                                Exceptions.printStackTrace(ex);
+                            } 
+                        }
                     }
+                    return null;
                 }
             });
         }
@@ -257,6 +266,11 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
         @Override
         protected void addNotify() {
             setKeys(nodes);
+        }
+        
+        //PRUEBA refresco sin eliminacion
+        public void refreshKeys() {   
+            setKeys(nodes);   
         }
 
         @Override
