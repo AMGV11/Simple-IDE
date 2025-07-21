@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://www.netbeans.org/ns/project/1">
+    <type>org.netbeans.modules.apisupport.project</type>
+    <configuration>
+        <data xmlns="http://www.netbeans.org/ns/nb-module-project/3">
+            <code-name-base>gson</code-name-base>
+            <suite-component/>
+            <module-dependencies/>
+            <public-packages>
+                <package>com.google.gson</package>
+                <package>com.google.gson.annotations</package>
+                <package>com.google.gson.internal</package>
+                <package>com.google.gson.internal.bind</package>
+                <package>com.google.gson.internal.bind.util</package>
+                <package>com.google.gson.internal.reflect</package>
+                <package>com.google.gson.internal.sql</package>
+                <package>com.google.gson.reflect</package>
+                <package>com.google.gson.stream</package>
+            </public-packages>
+            <class-path-extension>
+                <runtime-relative-path>ext/gson-2.11.0.jar</runtime-relative-path>
+                <binary-origin>release/modules/ext/gson-2.11.0.jar</binary-origin>
+            </class-path-extension>
+        </data>
+    </configuration>
+</project>

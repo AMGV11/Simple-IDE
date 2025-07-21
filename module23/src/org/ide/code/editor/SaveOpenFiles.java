@@ -22,16 +22,17 @@ import org.openide.windows.TopComponent;
  */
 @OnStop
 public class SaveOpenFiles implements Runnable {
+
     public void run() {
         File file = OpenFilesRecord.getFileLastSession();
         TopComponent.Registry registry = TopComponent.getRegistry();
         List<FileObject> openFiles = new ArrayList<>();
-        
+
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, false))) {
             for (TopComponent tc : registry.getOpened()) {
-                if(tc instanceof CodeEditorTopComponent editor){
+                if (tc instanceof CodeEditorTopComponent editor) {
                     FileObject fo = editor.getCurrentFO();
-                    if(fo != null){
+                    if (fo != null) {
                         File aux = FileUtil.toFile(fo);
                         writer.write(aux.getAbsolutePath());
                         writer.newLine();
@@ -42,4 +43,4 @@ public class SaveOpenFiles implements Runnable {
             Exceptions.printStackTrace(ex);
         }
     }
-}  
+}

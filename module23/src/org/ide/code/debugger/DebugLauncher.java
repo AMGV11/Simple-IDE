@@ -3,12 +3,9 @@ package org.ide.code.debugger;
 import com.sun.jdi.AbsentInformationException;
 import com.sun.jdi.Bootstrap;
 import com.sun.jdi.IncompatibleThreadStateException;
-import com.sun.jdi.LocalVariable;
 import com.sun.jdi.Location;
 import com.sun.jdi.ReferenceType;
-import com.sun.jdi.StackFrame;
 import com.sun.jdi.ThreadReference;
-import com.sun.jdi.Value;
 import com.sun.jdi.VirtualMachine;
 import com.sun.jdi.VirtualMachineManager;
 import com.sun.jdi.connect.Connector;
@@ -69,7 +66,6 @@ public class DebugLauncher{
             this.codeEditor = codeEditor;
             launchVM(className); // la lógica actual de tu método aquí
         } catch (Exception ex) {
-            ex.printStackTrace();
         }
     }, "Debugger-Thread").start();
     }
@@ -109,10 +105,9 @@ public class DebugLauncher{
 
             for (Event event : events) {
                 if (event instanceof VMStartEvent) {
-                    System.out.println("VM iniciada.");
+                    System.out.println("[DEBUG] VM iniciada.");
                     //events.resume();
                 }
-                System.out.println("Tipo de evento" + event);
 
                 if (event instanceof ClassPrepareEvent cp) {
                     ReferenceType refType = cp.referenceType();
@@ -127,12 +122,12 @@ public class DebugLauncher{
                             if (!locations.isEmpty()) {
                                 BreakpointRequest bp = erm.createBreakpointRequest(locations.get(0));
                                 bp.enable();
-                                System.out.println("- Breakpoint colocado en linea " + bpi.getLine());
+                                System.out.println("[DEBUG] Breakpoint colocado en linea " + bpi.getLine());
                                 breakPointSet = true;
                                 
                                 if (bpi.getLine() > maxLine) {
                                     maxLine = bpi.getLine();
-                                    System.out.println("MaxLine: " + maxLine);
+                                    // System.out.println("MaxLine: " + maxLine);
                                 }
                             }
                         }
@@ -142,7 +137,7 @@ public class DebugLauncher{
                 if (event instanceof BreakpointEvent bp) {
                     shouldResume = false;
                     Location loc = bp.location();
-                    System.out.println("Breakpoint alcanzado en: " +
+                    System.out.println("[DEBUG] Breakpoint alcanzado en: " +
                     loc.sourceName() + " : " + loc.lineNumber());
                     codeEditor.setLineTrackIcon(loc.lineNumber()-1);
                     ThreadReference thread = bp.thread();
@@ -170,7 +165,7 @@ public class DebugLauncher{
                     shouldResume = false;
                     StepEvent stepEvent = (StepEvent) event;
                     int line = stepEvent.location().lineNumber();
-                    System.out.println("Step ejecutado en línea: " + stepEvent.location().lineNumber());
+                    System.out.println("[DEBUG] Step ejecutado en línea: " + stepEvent.location().lineNumber());
                     codeEditor.setLineTrackIcon(line - 1);
                     
                     String sourceName = stepEvent.location().sourceName();
@@ -197,7 +192,7 @@ public class DebugLauncher{
                 }
                 
                 if (event instanceof VMDeathEvent) {
-                    System.out.println("VM finalizada.");
+                    System.out.println("[DEBUG] VM finalizada.");
                     
                     if(callStackDialog.isShowing()){
                         callStackDialog.dispose();
@@ -210,7 +205,7 @@ public class DebugLauncher{
                 }
 
                 if (event instanceof VMDisconnectEvent) {
-                    System.out.println("VM desconectada.");
+                    System.out.println("[DEBUG] VM desconectada.");
                     
                     if(callStackDialog.isShowing()){
                         callStackDialog.dispose();
@@ -238,7 +233,7 @@ public class DebugLauncher{
         }
         
         if (currentThread == null || !currentThread.isSuspended()) {
-            System.out.println("No hay hilo válido para Step Into.");
+            System.out.println("[DEBUG] No hay hilo válido para Step Into.");
             return;
         }
         
@@ -268,7 +263,7 @@ public class DebugLauncher{
         }
         
         if (currentThread == null || !currentThread.isSuspended()) {
-            System.out.println("No hay hilo válido para Step Into.");
+            System.out.println("[DEBUG] No hay hilo válido para Step Into.");
             return;
         }
         
@@ -287,7 +282,6 @@ public class DebugLauncher{
 
             vm.resume();
             } catch (Exception e) {
-                e.printStackTrace();
             }
     }
     
@@ -297,7 +291,7 @@ public class DebugLauncher{
         }
         
         if (currentThread == null || !currentThread.isSuspended()) {
-            System.out.println("No hay hilo válido para Step Into.");
+            System.out.println("[DEBUG] No hay hilo válido para Step Into.");
             return;
         }
         
@@ -316,7 +310,6 @@ public class DebugLauncher{
 
             vm.resume();
             } catch (Exception e) {
-                e.printStackTrace();
             }
     }
     
@@ -346,7 +339,7 @@ public class DebugLauncher{
     //Para comprobar si la VM esta activa
     private boolean checkVM() {
         if(vm == null){ 
-            System.out.println("No esta inicializado el modo debug.");
+            System.out.println("[DEBUG] No esta inicializado el modo debug.");
             return false;
             
         } else {
@@ -357,12 +350,12 @@ public class DebugLauncher{
     
     public void setCallStackDialog(ThreadReference currentThread) {
         SwingUtilities.invokeLater(() -> {
-            TopComponent codeEditor = TopComponent.getRegistry().getActivated();
+            TopComponent codeEditorInstance = TopComponent.getRegistry().getActivated();
 
-            if (codeEditor instanceof CodeEditorTopComponent) {
+            if (codeEditorInstance instanceof CodeEditorTopComponent) {
 
-                Point editorLocation = codeEditor.getLocationOnScreen();
-                int x = editorLocation.x + codeEditor.getWidth() + 10; // 10 píxeles a la derecha
+                Point editorLocation = codeEditorInstance.getLocationOnScreen();
+                int x = editorLocation.x + codeEditorInstance.getWidth() + 10; // 10 píxeles a la derecha
                 int y = editorLocation.y;
 
                 callStackDialog = new CallStackDialog(WindowManager.getDefault().getMainWindow(), currentThread);
@@ -375,7 +368,7 @@ public class DebugLauncher{
     public void setVariablesDialog(ThreadReference currentThread, CallStackDialog callStackDialog) {
         SwingUtilities.invokeLater(() -> {
             if (callStackDialog == null || !callStackDialog.isShowing()) {
-                System.out.println("El diálogo de stack no está visible.");
+                System.out.println("[DEBUG] El diálogo de stack no está visible.");
                 return;
             }
 

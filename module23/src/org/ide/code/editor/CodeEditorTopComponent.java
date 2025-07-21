@@ -18,7 +18,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -164,7 +163,6 @@ public final class CodeEditorTopComponent extends TopComponent {
         
         // Inspecciona los hijos del Gutter directamente
         for (Component c : gutter.getComponents()) {
-            //System.out.println("Subcomponente del Gutter: " + c.getClass().getName());
             if (c.getClass().getName().equals("org.fife.ui.rtextarea.LineNumberList")){
             c.addMouseListener(new MouseAdapter() {
                 @Override
@@ -172,7 +170,6 @@ public final class CodeEditorTopComponent extends TopComponent {
                     if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
                         javaLanguageSupport.uninstall(rSyntaxTextArea1);
                         sp.setIconRowHeaderEnabled(true);
-                        print("Modo DEBUG activado");
                         int y = e.getY();
                         
                         try {
@@ -202,7 +199,6 @@ public final class CodeEditorTopComponent extends TopComponent {
                     } else if (SwingUtilities.isRightMouseButton(e) && sp.isIconRowHeaderEnabled()){
                         sp.setIconRowHeaderEnabled(false);
                         javaLanguageSupport.install(rSyntaxTextArea1);
-                        print("Modo DEBUG desactivado");
                     }
                 }       
             });   
@@ -445,9 +441,6 @@ public void setLineTrackIcon(int newLineNumber) throws BadLocationException {
     
     Image bpImage = ImageUtilities.loadImage("org/ide/code/debugger/redButton.png");
     ImageIcon breakpointIcon = new ImageIcon(bpImage);
-    System.out.println("----------NUEVA ITERACION----------");
-    System.out.println(breakpointIcons);
-    System.out.println("DEBUG: Moving to line " + newLineNumber + " from " + currentExecutionLine);
 
     // Paso 1: Limpiar el icono de ejecución anterior
     if (currentExecutionIcon != null) {
@@ -461,24 +454,19 @@ public void setLineTrackIcon(int newLineNumber) throws BadLocationException {
         GutterIconInfo removedBreakpoint = breakpointIcons.remove(newLineNumber);
         gutter.removeTrackingIcon(removedBreakpoint);
         breakpointIcons.put(newLineNumber, null);
-        System.out.println("DEBUG: Removed breakpoint from line " + newLineNumber);
     }
 
     // Paso 3: Añadir el icono de ejecución
     try {
         currentExecutionIcon = gutter.addLineTrackingIcon(newLineNumber, executionIcon);
         currentExecutionLine = newLineNumber;
-        System.out.println("DEBUG: Added execution icon to line " + newLineNumber);
     } catch (BadLocationException e) {
-        System.err.println("Error adding execution icon: " + e.getMessage());
     }
 
     // Paso 4: Restaurar el breakpoint anterior si es necesario
-    System.out.println("[DEBUG] Bool para entrar al paso 4: " + breakpointIcons.containsKey(currentExecutionLine));
     if (breakpointIcons.containsKey(currentExecutionLine)) {
         GutterIconInfo restoredBreakpoint = gutter.addLineTrackingIcon(currentExecutionLine, breakpointIcon);
         breakpointIcons.put(currentExecutionLine, restoredBreakpoint);
-        System.out.println("DEBUG: Restored breakpoint at line " + currentExecutionLine);
     }
 }
 

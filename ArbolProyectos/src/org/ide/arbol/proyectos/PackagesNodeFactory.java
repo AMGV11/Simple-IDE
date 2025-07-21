@@ -31,19 +31,22 @@ public class PackagesNodeFactory implements NodeFactory {
 
         @Override
         public List<Node> keys() {
-            FileObject textsFolder =
-                project.getProjectDirectory().getFileObject("src");
-            List<Node> result = new ArrayList<Node>();
-            if (textsFolder != null) {
-                for (FileObject textsFolderFile : textsFolder.getChildren()) {
+            FileObject srcFolder = project.getProjectDirectory().getFileObject("src");
+            List<Node> result = new ArrayList<>();
+
+            if (srcFolder != null) {
+                // Busca recursivamente las carpetas que vamos a mostrar en el arbol
+                List<FileObject> leafFolders = getProjectFolders(srcFolder);
+
+                for (FileObject leafFolder : leafFolders) {
                     try {
-                        result.add(DataObject.find(textsFolderFile).getNodeDelegate());
-                        result.get(0).setDisplayName("probadura");
+                        result.add(DataObject.find(leafFolder).getNodeDelegate());
                     } catch (DataObjectNotFoundException ex) {
                         Exceptions.printStackTrace(ex);
                     }
                 }
             }
+
             return result;
         }
 
@@ -67,5 +70,29 @@ public class PackagesNodeFactory implements NodeFactory {
         @Override
         public void removeChangeListener(ChangeListener cl) {
         }
+    }
+    
+    // Método auxiliar para encontrar carpetas hoja con .java
+    private static List<FileObject> getProjectFolders(FileObject folder) {
+        List<FileObject> result = new ArrayList<>();
+        boolean hasJavaFiles = false;
+        boolean hasSubfolders = false;
+
+        for (FileObject child : folder.getChildren()) {
+            if (child.isFolder()) {
+                hasSubfolders = true;
+                result.addAll(getProjectFolders(child));
+            } else if ("java".equalsIgnoreCase(child.getExt())) {
+                hasJavaFiles = true;
+            }
+        }
+
+        if (hasJavaFiles) {
+            result.add(folder);
+        } else if (!hasSubfolders){
+            result.add(folder);
+        }
+
+        return result;
     }
 }

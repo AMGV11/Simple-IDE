@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JComponent;
 import org.ide.arbol.proyectos.ExploradorTopComponent;
-import org.lookup.aux.RefreshExplorerCommand;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ui.OpenProjects;
 import org.openide.DialogDisplayer;

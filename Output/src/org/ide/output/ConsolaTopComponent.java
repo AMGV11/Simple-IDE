@@ -4,12 +4,16 @@
  */
 package org.ide.output;
 
+import java.awt.Font;
+import java.awt.Insets;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.windows.TopComponent;
 import org.openide.util.NbBundle.Messages;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import javax.swing.text.StyledDocument;
 
 /**
  * Top component which displays something.
@@ -39,9 +43,9 @@ public final class ConsolaTopComponent extends TopComponent {
 
     public ConsolaTopComponent() {
         initComponents();
-
-        TextAreaOutputStream taOutputStream = new TextAreaOutputStream(Consola, "IDE");
-        PrintStream printStream = new PrintStream(taOutputStream, true);
+   
+        TextAreaOutputStream taOutputStream = new TextAreaOutputStream(textPaneConsole, "IDE");
+        PrintStream printStream = new PrintStream(taOutputStream, true, StandardCharsets.UTF_8);
         System.setOut(printStream);
         System.setErr(printStream);
 
@@ -57,36 +61,33 @@ public final class ConsolaTopComponent extends TopComponent {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jScrollPane1 = new javax.swing.JScrollPane();
-        Consola = new javax.swing.JTextArea();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        textPaneConsole = new javax.swing.JTextPane();
 
-        Consola.setEditable(false);
-        Consola.setColumns(20);
-        Consola.setLineWrap(true);
-        Consola.setRows(5);
-        jScrollPane1.setViewportView(Consola);
+        textPaneConsole.setFont(new java.awt.Font("Monospaced", 0, 12)); // NOI18N
+        jScrollPane2.setViewportView(textPaneConsole);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 388, Short.MAX_VALUE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 388, Short.MAX_VALUE)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 108, Short.MAX_VALUE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 108, Short.MAX_VALUE)
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTextArea Consola;
-    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JTextPane textPaneConsole;
     // End of variables declaration//GEN-END:variables
     @Override
     public void componentOpened() {
@@ -110,7 +111,7 @@ public final class ConsolaTopComponent extends TopComponent {
         // TODO read your settings according to their version
     }
 
-    public javax.swing.JTextArea getConsole() {
-        return Consola;
+    public javax.swing.JTextPane getConsole() {
+        return textPaneConsole;
     }
 }

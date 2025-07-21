@@ -4,7 +4,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -43,11 +45,12 @@ import org.openide.windows.TopComponent;
 @Messages({
     "CTL_ExploradorAction=Explorador",
     "CTL_ExploradorTopComponent=Proyectos",
-    "HINT_ExploradorTopComponent=This is a Explorador window"
+    "HINT_ExploradorTopComponent=Explorador de Proyectos"
 })
 public class ExploradorTopComponent extends TopComponent implements ExplorerManager.Provider {
 
     private final ExplorerManager mgr = new ExplorerManager();
+    private Map<FileObject, Node> listNodes = new HashMap<>();;
 
     public ExploradorTopComponent() {
         initComponents();
@@ -204,7 +207,6 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
         if (viewProvider != null) {
             Node logicalView = viewProvider.createLogicalView();
 
-            // Personaliza todos los nodos hijos si quieres aplicar el cambio de forma global
             return new FilterNode(logicalView, new FilterNode.Children(logicalView) {
                 @Override
                 @SuppressWarnings("empty-statement")
@@ -215,19 +217,16 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
                     if (fo!=null){
                         
                         if (fo.isFolder()) {
-                                                       
-                            return new Node[]{     
-                                new FolderNode(fo) {
-                                    @Override
-                                    public String getDisplayName() {
-                                        return "Carpeta " + fo.getName();
-                                    }
-                                } 
-                            };
+                            FolderNode folder = new FolderNode(fo);
+                            listNodes.put(fo, folder);
+                            //System.out.println(listNodes.toString());
+                            return new Node[]{ folder };
                             
                         } else {
                             try {
-                                return new Node[]{ new FileNode(fo) };
+                                FileNode file = new FileNode(fo);
+                                listNodes.put(fo, file);
+                                return new Node[]{ file };
                             } catch (DataObjectNotFoundException ex) {
                                 Exceptions.printStackTrace(ex);
                             } 
@@ -277,6 +276,10 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
         protected Node[] createNodes(Node key) {
             return new Node[]{key};
         }
+    }
+    
+    public Map<FileObject, Node> getList () {
+        return listNodes;
     }
 
     /*private  Node buildProjectsRootNode(File folder) {

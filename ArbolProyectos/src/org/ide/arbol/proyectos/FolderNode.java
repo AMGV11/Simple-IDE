@@ -22,10 +22,13 @@ import org.openide.util.Lookup;
 import org.openide.util.datatransfer.PasteType;
 import java.awt.dnd.DnDConstants;
 import java.awt.event.ActionEvent;
+import java.io.File;
+import java.util.Stack;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.filesystems.FileUtil;
 import org.openide.windows.TopComponent;
 
 public class FolderNode extends AbstractNode {
@@ -36,9 +39,6 @@ public class FolderNode extends AbstractNode {
         super(new FolderChildren(folder), createLookup(folder));
 
         this.folder = folder;
-        
-        
-        
     }
 
     private static Lookup createLookup(FileObject folder) {
@@ -61,7 +61,7 @@ public class FolderNode extends AbstractNode {
     
     @Override
     public Image getIcon(int type) {
-        return ImageUtilities.loadImage("org/ide/arbol/proyectos/Package.png"); // Cambia la ruta del icono
+        return ImageUtilities.loadImage("org/ide/arbol/proyectos/Package.png"); 
     }
 
     @Override
@@ -121,17 +121,18 @@ public class FolderNode extends AbstractNode {
     
     @Override
     public String getDisplayName() {
-        return "NombrePrueba";
+        return this.getHtmlDisplayName();
     }
     
         @Override
     public String getName() {
-        return "NombrePrueba";
+        return folder.getName();
     }
 
     @Override
     public String getHtmlDisplayName() {
-        return "<b>" + folder.getName() + "</b>";
+        String name = findProjectName(FileUtil.toFile(folder));
+        return "<b>" + name + "</b>";
     }
 
     @Override
@@ -256,5 +257,25 @@ public class FolderNode extends AbstractNode {
         }
     }
 
+        //Metodo que nos proporciona el directorio del archivo ya formateado
+    private String findProjectName(File javaFile) {
+        Stack<String> names = new Stack<>();
+        String directory;
+        
+        while (javaFile != null && !javaFile.getName().equals("src")) {
+            if (javaFile.isDirectory()){
+                names.push(javaFile.getName());
+            } 
+            javaFile = javaFile.getParentFile();
+        }
+                
+        directory = names.pop();
+        
+        while(!names.isEmpty()){
+            directory = directory + "." + names.pop();
+        }
+        
+        return directory;
+    }
 }
  
