@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?><module codename="org.ide.wizard.nuevoarchivo">
+    <module_version install_time="1753462698710" last="true" origin="installer" specification_version="1.0">
+        <file crc="3645306227" name="config/Modules/org-ide-wizard-nuevoarchivo.xml"/>
+        <file crc="1556134464" name="modules/org-ide-wizard-nuevoarchivo.jar"/>
+    </module_version>
+</module>

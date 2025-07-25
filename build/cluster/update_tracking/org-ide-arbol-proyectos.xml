@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?><module codename="org.ide.arbol.proyectos">
+    <module_version install_time="1753462696981" last="true" origin="installer" specification_version="1.0">
+        <file crc="2826089640" name="config/Modules/org-ide-arbol-proyectos.xml"/>
+        <file crc="3405389327" name="modules/org-ide-arbol-proyectos.jar"/>
+    </module_version>
+</module>

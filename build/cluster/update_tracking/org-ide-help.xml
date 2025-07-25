@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?><module codename="org.ide.help">
+    <module_version install_time="1753462694291" last="true" origin="installer" specification_version="1.0">
+        <file crc="2654430231" name="config/Modules/org-ide-help.xml"/>
+        <file crc="330827530" name="modules/org-ide-help.jar"/>
+    </module_version>
+</module>

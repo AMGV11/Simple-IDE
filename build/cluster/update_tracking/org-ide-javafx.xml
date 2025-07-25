@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?><module codename="org.ide.javafx">
+    <module_version install_time="1753462693067" last="true" origin="installer" specification_version="1.0">
+        <file crc="2263996818" name="config/Modules/org-ide-javafx.xml"/>
+        <file crc="3921171733" name="modules/ext/javafx.base.jar"/>
+        <file crc="163176512" name="modules/ext/javafx.controls.jar"/>
+        <file crc="2806243459" name="modules/ext/javafx.fxml.jar"/>
+        <file crc="2301286656" name="modules/ext/javafx.graphics.jar"/>
+        <file crc="2687599379" name="modules/ext/javafx.swing.jar"/>
+        <file crc="2791271474" name="modules/org-ide-javafx.jar"/>
+    </module_version>
+</module>

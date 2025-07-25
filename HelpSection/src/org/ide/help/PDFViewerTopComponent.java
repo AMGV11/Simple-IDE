@@ -64,12 +64,10 @@ public final class PDFViewerTopComponent extends TopComponent {
         toolBar = new JToolBar();
         toolBar.setFloatable(false);
         
-        // Controles de navegación
         JButton prevButton = new JButton("◀");
         prevButton.setToolTipText("Página anterior");
         prevButton.addActionListener(e -> previousPage());
         toolBar.add(prevButton);
-
         toolBar.add(new JLabel(" Página: "));
         pageField = new JTextField("1", 3);
         pageField.addActionListener(e -> goToPage());
@@ -77,33 +75,28 @@ public final class PDFViewerTopComponent extends TopComponent {
 
         totalPagesLabel = new JLabel(" / 0 ");
         toolBar.add(totalPagesLabel);
-
         JButton nextButton = new JButton("▶");
         nextButton.setToolTipText("Página siguiente");
         nextButton.addActionListener(e -> nextPage());
         toolBar.add(nextButton);
-
         toolBar.addSeparator();
 
-        // Controles de zoom
         JButton zoomInButton = new JButton("🔍+");
         zoomInButton.setToolTipText("Acercar");
         zoomInButton.addActionListener(e -> zoomIn());
         toolBar.add(zoomInButton);
-
+        
         JButton zoomOutButton = new JButton("🔍-");
         zoomOutButton.setToolTipText("Alejar");
         zoomOutButton.addActionListener(e -> zoomOut());
         toolBar.add(zoomOutButton);
-
+        
         JButton fitButton = new JButton("Ajustar");
         fitButton.setToolTipText("Ajustar a ventana");
         fitButton.addActionListener(e -> fitToWindow());
         toolBar.add(fitButton);
-
         add(toolBar, BorderLayout.NORTH);
 
-        // Panel para mostrar PDF
         pdfPanel = new JPanel();
         pdfPanel.setLayout(new BorderLayout());
         scrollPane = new JScrollPane(pdfPanel);
@@ -111,36 +104,28 @@ public final class PDFViewerTopComponent extends TopComponent {
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         add(scrollPane, BorderLayout.CENTER);
         
-        // En initComponents(), después de crear el scrollPane:
-scrollPane.addMouseWheelListener(new MouseWheelListener() {
-    @Override
-    public void mouseWheelMoved(MouseWheelEvent e) {
-        // Forzar el scroll vertical
-        JScrollBar vertical = scrollPane.getVerticalScrollBar();
-        vertical.setValue(vertical.getValue() + (e.getWheelRotation() * 20));
-    }
-});
+        scrollPane.addMouseWheelListener(new MouseWheelListener() {
+            @Override
+            public void mouseWheelMoved(MouseWheelEvent e) {
+                // Forzar el scroll vertical
+                JScrollBar vertical = scrollPane.getVerticalScrollBar();
+                vertical.setValue(vertical.getValue() + (e.getWheelRotation() * 20));
+            }
+        });
     }
 
     public void loadPDF(File pdfFile) {
         try {
-            // Cerrar documento anterior si existe
             if (currentDocument != null) {
                 currentDocument.close();
             }
-
-            // Cargar nuevo documento
             currentDocument = PDDocument.load(pdfFile);
             renderer = new PDFRenderer(currentDocument);
             currentPage = 0;
             zoomLevel = 1.0f;
-
-            // Actualizar UI
             setDisplayName(pdfFile.getName());
             totalPagesLabel.setText(" / " + currentDocument.getNumberOfPages());
             pageField.setText("1");
-
-            // Renderizar primera página
             renderCurrentPage();
 
         } catch (IOException e) {
@@ -157,7 +142,6 @@ private void renderCurrentPage() {
         BufferedImage image = renderer.renderImageWithDPI(
             currentPage, 96 * zoomLevel, ImageType.RGB);
 
-        // Crear un panel personalizado que pinta la imagen
         JPanel imagePanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -172,16 +156,13 @@ private void renderCurrentPage() {
                 return new Dimension(image.getWidth(), image.getHeight());
             }
         };
-        
         pdfPanel.removeAll();
         pdfPanel.add(imagePanel, BorderLayout.CENTER);
         pdfPanel.revalidate();
         pdfPanel.repaint();
-
         pageField.setText(String.valueOf(currentPage + 1));
 
     } catch (IOException e) {
-        // manejo de error
     }
 }
 
@@ -226,7 +207,6 @@ private void renderCurrentPage() {
     }
 
     private void fitToWindow() {
-        // Implementación básica - podrías mejorar esto
         zoomLevel = 1.0f;
         renderCurrentPage();
     }
@@ -234,12 +214,10 @@ private void renderCurrentPage() {
     @Override
     protected void componentClosed() {
         super.componentClosed();
-        // Cerrar documento al cerrar la ventana
         if (currentDocument != null) {
             try {
                 currentDocument.close();
             } catch (IOException e) {
-                // Log error
             }
         }
     }
@@ -253,14 +231,10 @@ private void renderCurrentPage() {
     }
     
     void writeProperties(java.util.Properties p) {
-        // better to version settings since initial version as advocated at
-        // http://wiki.apidesign.org/wiki/PropertyFiles
         p.setProperty("version", "1.0");
-        // TODO store your settings
     }
 
     void readProperties(java.util.Properties p) {
         String version = p.getProperty("version");
-        // TODO read your settings according to their version
     }
 }

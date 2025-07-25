@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?><module codename="org.ide.pdfbox">
+    <module_version install_time="1753462693869" last="true" origin="installer" specification_version="1.0">
+        <file crc="2725717593" name="config/Modules/org-ide-pdfbox.xml"/>
+        <file crc="3319519491" name="modules/ext/pdfbox-app-2.0.34.jar"/>
+        <file crc="2037709272" name="modules/org-ide-pdfbox.jar"/>
+    </module_version>
+</module>

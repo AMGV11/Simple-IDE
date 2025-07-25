@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?><module codename="org.ide.topComponentDemo">
+    <module_version install_time="1753462695847" last="true" origin="installer" specification_version="1.0">
+        <file crc="2705842748" name="config/Modules/org-ide-topComponentDemo.xml"/>
+        <file crc="1345432149" name="modules/ext/rsyntaxtextarea-3.6.0.jar"/>
+        <file crc="170920338" name="modules/org-ide-topComponentDemo.jar"/>
+    </module_version>
+</module>

@@ -1,60 +1,72 @@
-// ManualNode.java - Nodo para el árbol de manuales
+// ManualNode.java - Nodo del árbol que soporta archivos y resources
 package org.ide.help;
 
 import java.io.File;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 public class ManualNode extends DefaultMutableTreeNode {
-    private String title;
-    private File pdfFile;
-    private String category;
-    private String description;
 
-    public ManualNode(String title) {
-        super(title);
-        this.title = title;
+    private File pdfFile;           // Para PDFs del sistema de archivos
+    private String resourcePath;    // Para PDFs desde resources
+    private String displayName;
+
+    public ManualNode(String displayName) {
+        super(displayName);
+        this.displayName = displayName;
+        this.pdfFile = null;
+        this.resourcePath = null;
     }
 
-    public ManualNode(String title, File pdfFile) {
-        this(title);
+    public ManualNode(String displayName, File pdfFile) {
+        super(displayName);
+        this.displayName = displayName;
         this.pdfFile = pdfFile;
+        this.resourcePath = null;
     }
 
-    public String getTitle() {
-        return title;
+    public ManualNode(String displayName, String resourcePath) {
+        super(displayName);
+        this.displayName = displayName;
+        this.pdfFile = null;
+        this.resourcePath = resourcePath;
     }
 
     public File getPdfFile() {
         return pdfFile;
     }
 
-    public void setPdfFile(File pdfFile) {
-        this.pdfFile = pdfFile;
+    public String getResourcePath() {
+        return resourcePath;
     }
 
-    public String getCategory() {
-        return category;
+    public String getDisplayName() {
+        return displayName;
     }
 
-    public void setCategory(String category) {
-        this.category = category;
+    public boolean hasPDF() {
+        return pdfFile != null || resourcePath != null;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    @Override
-    public boolean isLeaf() {
+    public boolean isFileSystemPDF() {
         return pdfFile != null;
+    }
+
+    public boolean isResourcePDF() {
+        return resourcePath != null;
+    }
+
+    public String getTooltipText() {
+        if (pdfFile != null) {
+            return "Archivo: " + pdfFile.getAbsolutePath();
+        } else if (resourcePath != null) {
+            return "Recurso: " + resourcePath;
+        } else {
+            return "Categoría: " + displayName;
+        }
     }
 
     @Override
     public String toString() {
-        return title;
+        return displayName;
     }
 }

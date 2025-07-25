@@ -145,7 +145,7 @@ public class JDK9ClasspathLibraryInfo extends LibraryInfo
     @Override
     public ClassFile createClassFile(String entryName) throws IOException
     {
-        System.out.println("Create class file for entry: " + entryName);
+        // System.out.println("Create class file for entry: " + entryName);
         // NOTE: entryName always ends in ".class", so our map must account
         // for this.
         ClassFile cf = null;

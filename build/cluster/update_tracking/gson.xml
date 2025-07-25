@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?><module codename="gson">
+    <module_version install_time="1753462692264" last="true" origin="installer" specification_version="1.0">
+        <file crc="3588406381" name="config/Modules/gson.xml"/>
+        <file crc="1291623642" name="modules/ext/gson-2.11.0.jar"/>
+        <file crc="3733761455" name="modules/gson.jar"/>
+    </module_version>
+</module>

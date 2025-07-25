@@ -1,0 +1,11 @@
+C:\Program Files\NetBeans-25\netbeans\platform=1739527246000
+cluster.C:/Users/anton/Documents/NetBeansProjects/IDE/build/cluster=1753462698811
+cluster.C:/Program Files/NetBeans-25/netbeans/ide=1739527582000
+cluster.C:/Program Files/NetBeans-25/netbeans/platform=1739527246000
+user=1753462698811
+crc=7
+locale=es_ES
+branding=ide
+java.version=23.0.2
+java.vm.version=23.0.2+7-58
+netbeans.home=C:\Program Files\NetBeans-25\netbeans\platform

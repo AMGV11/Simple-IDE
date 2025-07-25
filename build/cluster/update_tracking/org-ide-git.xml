@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?><module codename="org.ide.git">
+    <module_version install_time="1753462697951" last="true" origin="installer" specification_version="1.0">
+        <file crc="872902889" name="config/Modules/org-ide-git.xml"/>
+        <file crc="661806024" name="modules/org-ide-git.jar"/>
+    </module_version>
+</module>

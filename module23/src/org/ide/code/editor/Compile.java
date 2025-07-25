@@ -23,15 +23,16 @@ import org.openide.windows.TopComponent;
  * @author anton
  */
 public class Compile {
+
     private static Compile instance;
-    
+
     public static Compile getInstance() {
         instance = new Compile();
 
         return instance;
     }
-    
-    public void compile(){
+
+    public void compile() {
         TopComponent activeTC = TopComponent.getRegistry().getActivated();
 
         if (activeTC instanceof CodeEditorTopComponent) {
@@ -97,7 +98,9 @@ public class Compile {
 
     private void collectJavaFiles(File dir, List<String> collector) {
         File[] files = dir.listFiles();
-        if (files == null) return;
+        if (files == null) {
+            return;
+        }
         for (File f : files) {
             if (f.isDirectory()) {
                 collectJavaFiles(f, collector);
@@ -106,17 +109,16 @@ public class Compile {
             }
         }
     }
-    
+
     private String removeComments(String code) {
         // Elimina comentarios de línea
         code = code.replaceAll("//.*", "");
-        
+
         // Elimina comentarios multilínea
         Pattern pattern = Pattern.compile("/\\*.*?\\*/", Pattern.DOTALL);
         Matcher matcher = pattern.matcher(code);
         code = matcher.replaceAll("");
-        
-        return code;
-}
-}
 
+        return code;
+    }
+}

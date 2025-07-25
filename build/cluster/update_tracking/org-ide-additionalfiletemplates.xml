@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?><module codename="org.ide.additionalfiletemplates">
+    <module_version install_time="1753462692665" last="true" origin="installer" specification_version="1.0">
+        <file crc="4001411452" name="config/Modules/org-ide-additionalfiletemplates.xml"/>
+        <file crc="3007835287" name="modules/org-ide-additionalfiletemplates.jar"/>
+    </module_version>
+</module>

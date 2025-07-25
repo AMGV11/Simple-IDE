@@ -54,14 +54,13 @@ import org.openide.util.lookup.InstanceContent;
 /**
  * Top component which displays something.
  */
-
 @TopComponent.Description(
         preferredID = "EditorTopComponent",
-       // iconBase="OpenFileIcon",
+        // iconBase="OpenFileIcon",
         persistenceType = TopComponent.PERSISTENCE_NEVER
 )
 @TopComponent.Registration(mode = "editor", openAtStartup = false)
-@ActionID(category = "Window", id = "org.ide.code.editor.CodeEditorTopComponent") 
+@ActionID(category = "Window", id = "org.ide.code.editor.CodeEditorTopComponent")
 @ActionReference(path = "Menu/Window" /*, position = 333 */)
 @TopComponent.OpenActionRegistration(
         displayName = "#CTL_EditorAction",
@@ -73,7 +72,7 @@ import org.openide.util.lookup.InstanceContent;
     "HINT_EditorTopComponent=This is a Code Editor window"
 })
 public final class CodeEditorTopComponent extends TopComponent {
-    
+
     private FileObject currentFO = null;
     private final InstanceContent content = new InstanceContent();
     private final AbstractLookup lookup = new AbstractLookup(content);
@@ -84,16 +83,16 @@ public final class CodeEditorTopComponent extends TopComponent {
     private Map<Integer, GutterIconInfo> breakpointIcons = new HashMap<>();
     private GutterIconInfo currentExecutionIcon = null;
     private int currentExecutionLine = -1;
-    
+
     public CodeEditorTopComponent() throws IOException {
         initComponents();
         setName(Bundle.CTL_EditorTopComponent());
         setToolTipText(Bundle.HINT_EditorTopComponent());
-        
+
         rSyntaxTextArea1.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA); // Puedes cambiarlo según el tipo de archivo
         rSyntaxTextArea1.setCodeFoldingEnabled(true);
         rSyntaxTextArea1.setAntiAliasingEnabled(true);
-        
+
         // Whether templates are enabled is a global property affecting all
         // RSyntaxTextAreas, so this method is static.
         RSyntaxTextArea.setTemplatesEnabled(true);
@@ -112,108 +111,108 @@ public final class CodeEditorTopComponent extends TopComponent {
         // bound of the loop.
         ct = new StaticCodeTemplate("fb", "for (int i=0; i<", "; i++) {\n\t\n}\n");
         ctm.addTemplate(ct);
-        
+
         JavaLanguageSupport javaLanguageSupport = new JavaLanguageSupport();
         javaLanguageSupport.getJarManager().addClassFileSource(new JDK9ClasspathLibraryInfo());
 
         javaLanguageSupport.install(rSyntaxTextArea1);
-        
+
         RTextScrollPane sp = new RTextScrollPane(rSyntaxTextArea1);
         setLayout(new BorderLayout());
         add(sp, BorderLayout.CENTER);
 
     }
-    
+
     public CodeEditorTopComponent(FileObject fileObject) throws IOException {
         associateLookup(lookup);
         initComponents();
         setName(Bundle.CTL_EditorTopComponent());
         setToolTipText(Bundle.HINT_EditorTopComponent());
-        
+
         rSyntaxTextArea1.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA); // Puedes cambiarlo según el tipo de archivo
         rSyntaxTextArea1.setCodeFoldingEnabled(true);
         rSyntaxTextArea1.setAntiAliasingEnabled(true);
-        
+
         JavaLanguageSupport javaLanguageSupport = new JavaLanguageSupport();
         javaLanguageSupport.getJarManager().addClassFileSource(new JDK9ClasspathLibraryInfo());
         javaLanguageSupport.install(rSyntaxTextArea1);
-        
+
         RTextScrollPane sp = new RTextScrollPane(rSyntaxTextArea1, true);
         sp.setLineNumbersEnabled(true);
         sp.setLineNumbersEnabled(true);
         sp.setIconRowHeaderEnabled(false);
-        
-        Image imagen =  ImageUtilities.loadImage("org/ide/code/debugger/redButton.png");
+
+        Image imagen = ImageUtilities.loadImage("org/ide/code/debugger/redButton.png");
         ImageIcon breakpointIcon = new ImageIcon(imagen);
-        
+
         //Ayuda al debug
         gutter = sp.getGutter();
         rSyntaxTextArea1.setHighlightCurrentLine(false);
-        
-        // Eliminar FoldIndicator si está presente
-         for (Component comp : gutter.getComponents()) {
-             String className = comp.getClass().getName();
-             if (className.endsWith("FoldIndicator")) {
-                 gutter.remove(comp); // ✅ lo quitamos
-                 gutter.revalidate();
-                 gutter.repaint();
-                 break;
-             }
-         }
-        
-        // Inspecciona los hijos del Gutter directamente
-        for (Component c : gutter.getComponents()) {
-            if (c.getClass().getName().equals("org.fife.ui.rtextarea.LineNumberList")){
-            c.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
-                        javaLanguageSupport.uninstall(rSyntaxTextArea1);
-                        sp.setIconRowHeaderEnabled(true);
-                        int y = e.getY();
-                        
-                        try {
-                            // Convertimos coordenadas Y a número de línea
-                            int pos = rSyntaxTextArea1.viewToModel2D(new Point(0, y));
-                            int line = rSyntaxTextArea1.getLineOfOffset(pos) + 1;
-                            BreakpointInfo bp = new BreakpointInfo(currentFO.getName(), line);
-                            BreakpointManager bpManager = BreakpointManager.getInstance();
-                            
-                            if (bpManager.contains(bp)){
-                                bpManager.removeBreakpoint(bp);
-                                GutterIconInfo icon = breakpointIcons.remove(line-1);
-                                gutter.removeTrackingIcon(icon);
-                                
-                            } else {
-                                GutterIconInfo info = gutter.addLineTrackingIcon(line - 1, breakpointIcon);
-                                breakpointIcons.put(line - 1, info);
-                                bpManager.addBreakpoint(bp);
-                                List<BreakpointInfo> breakpoints = BreakpointManager.getInstance().getBreakpoints();
-                                System.out.println(breakpoints.get(0).getClassName());
 
-                            }
-                            
-                        } catch (BadLocationException ex) {
-                        }
-                        
-                    } else if (SwingUtilities.isRightMouseButton(e) && sp.isIconRowHeaderEnabled()){
-                        sp.setIconRowHeaderEnabled(false);
-                        javaLanguageSupport.install(rSyntaxTextArea1);
-                    }
-                }       
-            });   
+        // Eliminar FoldIndicator si está presente
+        for (Component comp : gutter.getComponents()) {
+            String className = comp.getClass().getName();
+            if (className.endsWith("FoldIndicator")) {
+                gutter.remove(comp); // ✅ lo quitamos
+                gutter.revalidate();
+                gutter.repaint();
+                break;
             }
         }
-        
+
+        // Inspecciona los hijos del Gutter directamente
+        for (Component c : gutter.getComponents()) {
+            if (c.getClass().getName().equals("org.fife.ui.rtextarea.LineNumberList")) {
+                c.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
+                            javaLanguageSupport.uninstall(rSyntaxTextArea1);
+                            sp.setIconRowHeaderEnabled(true);
+                            int y = e.getY();
+
+                            try {
+                                // Convertimos coordenadas Y a número de línea
+                                int pos = rSyntaxTextArea1.viewToModel2D(new Point(0, y));
+                                int line = rSyntaxTextArea1.getLineOfOffset(pos) + 1;
+                                BreakpointInfo bp = new BreakpointInfo(currentFO.getName(), line);
+                                BreakpointManager bpManager = BreakpointManager.getInstance();
+
+                                if (bpManager.contains(bp)) {
+                                    bpManager.removeBreakpoint(bp);
+                                    GutterIconInfo icon = breakpointIcons.remove(line - 1);
+                                    gutter.removeTrackingIcon(icon);
+
+                                } else {
+                                    GutterIconInfo info = gutter.addLineTrackingIcon(line - 1, breakpointIcon);
+                                    breakpointIcons.put(line - 1, info);
+                                    bpManager.addBreakpoint(bp);
+                                    List<BreakpointInfo> breakpoints = BreakpointManager.getInstance().getBreakpoints();
+                                    System.out.println(breakpoints.get(0).getClassName());
+
+                                }
+
+                            } catch (BadLocationException ex) {
+                            }
+
+                        } else if (SwingUtilities.isRightMouseButton(e) && sp.isIconRowHeaderEnabled()) {
+                            sp.setIconRowHeaderEnabled(false);
+                            javaLanguageSupport.install(rSyntaxTextArea1);
+                        }
+                    }
+                });
+            }
+        }
+
         setLayout(new BorderLayout());
         add(sp, BorderLayout.CENTER);
-        
+
         loadFile(fileObject);
-        
+
         Parser parser = new JavaLiveCompilerParser(fileObject, getFolderBin(fileObject));
         rSyntaxTextArea1.addParser(parser);
-        
-        rSyntaxTextArea1.getDocument().addDocumentListener(new DocumentListener(){
+
+        rSyntaxTextArea1.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
                 onTextChanged();
@@ -229,8 +228,8 @@ public final class CodeEditorTopComponent extends TopComponent {
                 onTextChanged();
                 rSyntaxTextArea1.forceReparsing(parser);
             }
-            
-                private void onTextChanged() {
+
+            private void onTextChanged() {
                 setModifiedState();
 
                 // Cancela compilación anterior si todavía no ocurrió
@@ -246,10 +245,10 @@ public final class CodeEditorTopComponent extends TopComponent {
                     });
                 }, 2, TimeUnit.SECONDS);
             }
-        
+
         });
     }
- 
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -308,7 +307,7 @@ public final class CodeEditorTopComponent extends TopComponent {
         String version = p.getProperty("version");
         // TODO read your settings according to their version
     }
-    
+
     //Esto es el menu base, lo podemos editar e implementar
     private static JMenuBar createMenuBar(RSyntaxTextArea textArea) {
 
@@ -334,47 +333,44 @@ public final class CodeEditorTopComponent extends TopComponent {
         item.setToolTipText(null); // Swing annoyingly adds tool tip text to the menu item
         return item;
     }
-    
+
     public void loadFile(FileObject fileObject) throws IOException {
-        try (InputStream in = fileObject.getInputStream();
-                
-            Reader reader = new InputStreamReader(in, "UTF-8")) {
-            
-                rSyntaxTextArea1.read(reader, null);
-                setDisplayName(fileObject.getNameExt()); // Cambiar el título del editor
-                currentFO = fileObject;
-                rSyntaxTextArea1.getDocument().addDocumentListener(new DocumentListener(){
-                    
-                    @Override
-                    public void insertUpdate(DocumentEvent e) {
-                        setModifiedState();
-                    }
+        try (InputStream in = fileObject.getInputStream(); Reader reader = new InputStreamReader(in, "UTF-8")) {
 
-                    @Override
-                    public void removeUpdate(DocumentEvent e) {
-                        setModifiedState();
-                    }
+            rSyntaxTextArea1.read(reader, null);
+            setDisplayName(fileObject.getNameExt()); // Cambiar el título del editor
+            currentFO = fileObject;
+            rSyntaxTextArea1.getDocument().addDocumentListener(new DocumentListener() {
 
-                    @Override
-                    public void changedUpdate(DocumentEvent e) {
-                        setModifiedState();
-                    }
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    setModifiedState();
+                }
 
-                });
-            }
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    setModifiedState();
+                }
+
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    setModifiedState();
+                }
+
+            });
+        }
     }
-    
+
     public void saveFile() throws IOException {
-        try (OutputStream out = currentFO.getOutputStream();
-            Writer writer = new OutputStreamWriter(out, "UTF-8")) {
-                rSyntaxTextArea1.write(writer);
-            }
+        try (OutputStream out = currentFO.getOutputStream(); Writer writer = new OutputStreamWriter(out, "UTF-8")) {
+            rSyntaxTextArea1.write(writer);
+        }
     }
-    
-    public FileObject getCurrentFO (){
+
+    public FileObject getCurrentFO() {
         return currentFO;
     }
-    
+
     private void setModifiedState() {
         if (!modifiedState) {
             modifiedState = true;
@@ -387,9 +383,9 @@ public final class CodeEditorTopComponent extends TopComponent {
             });
         }
     }
-    
+
     private void updateTitle(boolean modificado) {
-        if (currentFO!=null){
+        if (currentFO != null) {
             String name = currentFO.getNameExt();
             if (modificado) {
                 setHtmlDisplayName("<html><b>*" + name + "</b></html>");
@@ -398,26 +394,25 @@ public final class CodeEditorTopComponent extends TopComponent {
             }
         }
     }
-    
-    public void setState(boolean state){
+
+    public void setState(boolean state) {
         modifiedState = state;
-        updateTitle (modifiedState);
+        updateTitle(modifiedState);
     }
-    
-    private FileObject getProjectDirectory (FileObject fo){
+
+    private FileObject getProjectDirectory(FileObject fo) {
         FileObject current = fo;
-        
-        while ( current!=null && !current.getName().equals("src") ){
+
+        while (current != null && !current.getName().equals("src")) {
             current = current.getParent();
         }
-        if (current!=null){
+        if (current != null) {
             return current.getParent();
         }
-        
+
         return null;
     }
-    
-    
+
     public static File getFolderBin(FileObject javaFo) {
         FileObject current = javaFo;
         // Sube hasta encontrar "src"
@@ -434,47 +429,44 @@ public final class CodeEditorTopComponent extends TopComponent {
         File binDir = new File(projectRoot, "bin");
         return binDir.exists() ? binDir : null;
     }
-    
-public void setLineTrackIcon(int newLineNumber) throws BadLocationException {
-    Image executionImage = ImageUtilities.loadImage("org/ide/code/debugger/greenArrow.png");
-    ImageIcon executionIcon = new ImageIcon(executionImage);
-    
-    Image bpImage = ImageUtilities.loadImage("org/ide/code/debugger/redButton.png");
-    ImageIcon breakpointIcon = new ImageIcon(bpImage);
 
-    // Paso 1: Limpiar el icono de ejecución anterior
-    if (currentExecutionIcon != null) {
-        gutter.removeTrackingIcon(currentExecutionIcon);
-        currentExecutionIcon = null; // Limpiar la referencia
+    public void setLineTrackIcon(int newLineNumber) throws BadLocationException {
+        Image executionImage = ImageUtilities.loadImage("org/ide/code/debugger/greenArrow.png");
+        ImageIcon executionIcon = new ImageIcon(executionImage);
+
+        Image bpImage = ImageUtilities.loadImage("org/ide/code/debugger/redButton.png");
+        ImageIcon breakpointIcon = new ImageIcon(bpImage);
+
+        // Paso 1: Limpiar el icono de ejecución anterior
+        if (currentExecutionIcon != null) {
+            gutter.removeTrackingIcon(currentExecutionIcon);
+            currentExecutionIcon = null; // Limpiar la referencia
+        }
+
+        // Paso 2: Manejar el breakpoint en la nueva línea
+        if (breakpointIcons.containsKey(newLineNumber)) {
+            // Si hay un breakpoint en la nueva línea, lo eliminamos
+            GutterIconInfo removedBreakpoint = breakpointIcons.remove(newLineNumber);
+            gutter.removeTrackingIcon(removedBreakpoint);
+            breakpointIcons.put(newLineNumber, null);
+        }
+
+        // Paso 3: Añadir el icono de ejecución
+        try {
+            currentExecutionIcon = gutter.addLineTrackingIcon(newLineNumber, executionIcon);
+            currentExecutionLine = newLineNumber;
+        } catch (BadLocationException e) {
+        }
+
+        // Paso 4: Restaurar el breakpoint anterior si es necesario
+        if (breakpointIcons.containsKey(currentExecutionLine)) {
+            GutterIconInfo restoredBreakpoint = gutter.addLineTrackingIcon(currentExecutionLine, breakpointIcon);
+            breakpointIcons.put(currentExecutionLine, restoredBreakpoint);
+        }
     }
 
-    // Paso 2: Manejar el breakpoint en la nueva línea
-    if (breakpointIcons.containsKey(newLineNumber)) {
-        // Si hay un breakpoint en la nueva línea, lo eliminamos
-        GutterIconInfo removedBreakpoint = breakpointIcons.remove(newLineNumber);
-        gutter.removeTrackingIcon(removedBreakpoint);
-        breakpointIcons.put(newLineNumber, null);
-    }
-
-    // Paso 3: Añadir el icono de ejecución
-    try {
-        currentExecutionIcon = gutter.addLineTrackingIcon(newLineNumber, executionIcon);
-        currentExecutionLine = newLineNumber;
-    } catch (BadLocationException e) {
-    }
-
-    // Paso 4: Restaurar el breakpoint anterior si es necesario
-    if (breakpointIcons.containsKey(currentExecutionLine)) {
-        GutterIconInfo restoredBreakpoint = gutter.addLineTrackingIcon(currentExecutionLine, breakpointIcon);
-        breakpointIcons.put(currentExecutionLine, restoredBreakpoint);
-    }
-}
-
-
-
-    
-    private void print(String text){
+    private void print(String text) {
         System.out.println(text);
     }
-    
+
 }

@@ -1,5 +1,6 @@
 package org.ide.arbol.proyectos;
 
+import java.awt.BorderLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -8,7 +9,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import javax.swing.JButton;
 import javax.swing.JOptionPane;
+import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ui.OpenProjects;
@@ -76,6 +79,7 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
         treeView.setDragSource(true);    // habilita arrastrar
         treeView.setDropTarget(true);    // habilita soltar
         
+        
          // Agregar un solo listener al árbol
         treeView.getViewport().getView().addMouseListener(new MouseAdapter() {
             @Override
@@ -113,6 +117,8 @@ public class ExploradorTopComponent extends TopComponent implements ExplorerMana
         jPanel1 = new javax.swing.JPanel();
         treeView = new org.openide.explorer.view.BeanTreeView();
         Refrescar = new javax.swing.JButton();
+
+        treeView.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.RAISED));
 
         org.openide.awt.Mnemonics.setLocalizedText(Refrescar, org.openide.util.NbBundle.getMessage(ExploradorTopComponent.class, "ExploradorTopComponent.Refrescar.text")); // NOI18N
         Refrescar.addActionListener(new java.awt.event.ActionListener() {

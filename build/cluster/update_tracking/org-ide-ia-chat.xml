@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?><module codename="org.ide.ia.chat">
+    <module_version install_time="1753462697453" last="true" origin="installer" specification_version="1.0">
+        <file crc="3628792773" name="config/Modules/org-ide-ia-chat.xml"/>
+        <file crc="1477012594" name="modules/org-ide-ia-chat.jar"/>
+    </module_version>
+</module>
