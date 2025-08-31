@@ -1,0 +1,151 @@
+package org.ide.wizard.project;
+
+import java.io.File;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import org.ide.arbol.proyectos.ProjectDirectory;
+import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
+
+/**
+ * Wizard encargado de ayudar a crear nuevos proyectos a los usuarios. Esta
+ * clase se encarga de una de las partes visuales del Wizard.
+ *
+ * @author Antonio Manuel Guisado Valle
+ * @version 1.0
+ */
+public final class NewProjectVisualPanel1 extends JPanel {
+
+    private final File defaultFolder = ProjectDirectory.getSavedProjectDirectory();
+    private FileObject directoryFO = FileUtil.toFileObject(defaultFolder);
+
+    public NewProjectVisualPanel1() {
+        initComponents();
+        directoryTextField.setText(defaultFolder.getAbsolutePath());
+    }
+
+    @Override
+    public String getName() {
+        return "Paso 1";
+    }
+
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        directorylabel = new javax.swing.JLabel();
+        nameLabel = new javax.swing.JLabel();
+        introduccionLabel = new javax.swing.JLabel();
+        nameTextField = new javax.swing.JTextField();
+        directoryTextField = new javax.swing.JTextField();
+        directoryButton = new javax.swing.JButton();
+
+        org.openide.awt.Mnemonics.setLocalizedText(directorylabel, org.openide.util.NbBundle.getMessage(NewProjectVisualPanel1.class, "NewProjectVisualPanel1.directorylabel.text")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(nameLabel, org.openide.util.NbBundle.getMessage(NewProjectVisualPanel1.class, "NewProjectVisualPanel1.nameLabel.text")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(introduccionLabel, org.openide.util.NbBundle.getMessage(NewProjectVisualPanel1.class, "NewProjectVisualPanel1.introduccionLabel.text")); // NOI18N
+
+        nameTextField.setText(org.openide.util.NbBundle.getMessage(NewProjectVisualPanel1.class, "NewProjectVisualPanel1.nameTextField.text")); // NOI18N
+        nameTextField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                nameTextFieldActionPerformed(evt);
+            }
+        });
+
+        directoryTextField.setEditable(false);
+        directoryTextField.setText(org.openide.util.NbBundle.getMessage(NewProjectVisualPanel1.class, "NewProjectVisualPanel1.directoryTextField.text")); // NOI18N
+        directoryTextField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                directoryTextFieldActionPerformed(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(directoryButton, org.openide.util.NbBundle.getMessage(NewProjectVisualPanel1.class, "NewProjectVisualPanel1.directoryButton.text")); // NOI18N
+        directoryButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                directoryButtonActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        this.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(introduccionLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 409, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(directorylabel, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE)
+                            .addComponent(nameLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(nameTextField)
+                            .addComponent(directoryTextField)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(directoryButton)))
+                .addContainerGap())
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(introduccionLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 47, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(nameLabel)
+                    .addComponent(nameTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(directorylabel)
+                    .addComponent(directoryTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(directoryButton)
+                .addGap(65, 65, 65))
+        );
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void nameTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nameTextFieldActionPerformed
+    }//GEN-LAST:event_nameTextFieldActionPerformed
+
+    private void directoryTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_directoryTextFieldActionPerformed
+    }//GEN-LAST:event_directoryTextFieldActionPerformed
+
+    private void directoryButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_directoryButtonActionPerformed
+        JFileChooser chooser = new JFileChooser();
+        chooser.setCurrentDirectory(defaultFolder);
+        chooser.setDialogTitle("Selecciona el directorio donde crear el proyecto");
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+
+        int result = chooser.showOpenDialog(null);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedDir = chooser.getSelectedFile();
+            FileObject dirFO = FileUtil.toFileObject(FileUtil.normalizeFile(selectedDir));
+            directoryFO = dirFO;
+            directoryTextField.setText(selectedDir.getAbsolutePath());
+            if (dirFO == null) {
+                JOptionPane.showMessageDialog(null, "No se pudo acceder al directorio seleccionado.");
+                return;
+            }
+        }
+    }//GEN-LAST:event_directoryButtonActionPerformed
+
+    public String getProjectName() {
+        return nameTextField.getText();
+    }
+
+    public FileObject getDirectory() {
+        return directoryFO;
+    }
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton directoryButton;
+    private javax.swing.JTextField directoryTextField;
+    private javax.swing.JLabel directorylabel;
+    private javax.swing.JLabel introduccionLabel;
+    private javax.swing.JLabel nameLabel;
+    private javax.swing.JTextField nameTextField;
+    // End of variables declaration//GEN-END:variables
+}

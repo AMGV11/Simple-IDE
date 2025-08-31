@@ -1,0 +1,6 @@
+package ${package};
+
+/** Constructor por defecto */
+public interface ${name} {
+    
+}
